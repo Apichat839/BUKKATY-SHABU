@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Bukkaty Shabu</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    background: url("bg.jpg") no-repeat center/cover;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.box {
+    background: rgba(0,0,0,0.85);
+    padding: 30px;
+    border-radius: 15px;
+    width: 350px;
+    text-align: center;
+    color: gold;
+}
+
+input, button {
+    width: 90%;
+    padding: 10px;
+    margin: 8px;
+    border-radius: 10px;
+    border: none;
+}
+
+button {
+    background: gold;
+    cursor: pointer;
+}
+
+button:disabled {
+    background: gray;
+    cursor: not-allowed;
+}
+
+input.valid {
+    border: 2px solid green;
+}
+
+input.invalid {
+    border: 2px solid red;
+}
+
+.error {
+    color: red;
+    font-size: 12px;
+    margin-top: -5px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+<h2>Bukkaty Shabu</h2>
+
+<!-- PAGE 1 -->
+<div id="page1">
+    <button onclick="goCustomer()">ลูกค้า</button>
+    <button onclick="goStaff()">พนักงาน</button>
+</div>
+
+<!-- PAGE 2 -->
+<div id="page2" style="display:none;">
+    <h3>สมัครสมาชิก</h3>
+    <input type="text" id="regUser" placeholder="Username">
+    <input type="password" id="regPass" placeholder="Password">
+    <button onclick="register()">สมัคร</button>
+    <button onclick="backTo('page1')">ย้อนกลับ</button>
+</div>
+
+<!-- PAGE 3 -->
+<div id="page3" style="display:none;">
+    <h3>Log in</h3>
+    <input type="text" id="loginUser" placeholder="Username">
+    <input type="password" id="loginPass" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <p id="msg" class="error"></p>
+    <button onclick="backTo('page2')">ย้อนกลับ</button>
+</div>
+
+<!-- PAGE 4 -->
+<div id="page4" style="display:none;">
+    <h3>ข้อมูลลูกค้า</h3>
+
+    <input type="text" id="name" placeholder="ชื่อ">
+    <p id="nameError" class="error"></p>
+
+    <input type="text" id="table" placeholder="โต๊ะ (01-99)">
+    <p id="tableError" class="error"></p>
+
+    <button id="submitBtn" onclick="saveCustomer()" disabled>ยืนยัน</button>
+    <button onclick="backTo('page3')">ย้อนกลับ</button>
+</div>
+
+<!-- PAGE 5 -->
+<div id="page5" style="display:none;">
+    <h3>พนักงาน</h3>
+    <input type="password" id="staffPass" placeholder="รหัสร้าน">
+    <button onclick="staffLogin()">เข้าสู่ระบบ</button>
+    <p id="staffMsg" class="error"></p>
+    <button onclick="backTo('page1')">ย้อนกลับ</button>
+</div>
+
+<!-- PAGE 6 -->
+<div id="page6" style="display:none;">
+    <h3>ข้อมูลลูกค้า</h3>
+    <p id="data"></p>
+    <button onclick="backTo('page1')">กลับหน้าแรก</button>
+</div>
+
+</div>
+
+<script>
+
+// ซ่อนหน้า
+function hideAll(){
+    let pages = ["page1","page2","page3","page4","page5","page6"];
+    pages.forEach(p => document.getElementById(p).style.display="none");
+}
+
+// ย้อนกลับ
+function backTo(page){
+    hideAll();
+    document.getElementById(page).style.display="block";
+}
+
+// ไปหน้า
+function goCustomer(){
+    hideAll();
+    document.getElementById("page2").style.display="block";
+}
+function goStaff(){
+    hideAll();
+    document.getElementById("page5").style.display="block";
+}
+
+
+function register(){
+    localStorage.setItem("user", regUser.value);
+    localStorage.setItem("pass", regPass.value);
+    backTo("page3");
+}
+
+
+function login(){
+    if(loginUser.value === localStorage.getItem("user") &&
+       loginPass.value === localStorage.getItem("pass")){
+        backTo("page4");
+    } else {
+        msg.innerText="Username หรือ Password ไม่ถูกต้อง";
+    }
+}
+
+
+function validateName(){
+    let name = nameInput.value.trim();
+
+    if(name === ""){
+        nameError.innerText="กรุณากรอกชื่อ";
+        nameInput.className="invalid";
+        return false;
+    }
+    else if(!/^[A-Za-zก-๙\s]+$/.test(name)){
+        nameError.innerText="ใช้ได้เฉพาะภาษาไทยหรืออังกฤษ";
+        nameInput.className="invalid";
+        return false;
+    }
+    else{
+        nameError.innerText="";
+        nameInput.className="valid";
+        return true;
+    }
+}
+
+
+function validateTable(){
+    let t = tableInput.value.trim();
+
+    if(t === ""){
+        tableError.innerText="กรุณากรอกเลขโต๊ะ";
+        tableInput.className="invalid";
+        return false;
+    }
+    else if(!/^[0-9]{2}$/.test(t) || Number(t)<1 || Number(t)>99){
+        tableError.innerText="ต้องเป็นเลข 01-99 เท่านั้น";
+        tableInput.className="invalid";
+        return false;
+    }
+    else{
+        tableError.innerText="";
+        tableInput.className="valid";
+        return true;
+    }
+}
+
+
+function checkForm(){
+    submitBtn.disabled = !(validateName() && validateTable());
+}
+
+
+let nameInput, tableInput, submitBtn, nameError, tableError;
+
+document.addEventListener("DOMContentLoaded", function(){
+    nameInput = document.getElementById("name");
+    tableInput = document.getElementById("table");
+    submitBtn = document.getElementById("submitBtn");
+    nameError = document.getElementById("nameError");
+    tableError = document.getElementById("tableError");
+
+    nameInput.addEventListener("input", checkForm);
+    tableInput.addEventListener("input", checkForm);
+});
+
+
+function saveCustomer(){
+    localStorage.setItem("customerData",
+        "ชื่อ: "+nameInput.value+" | โต๊ะ: "+tableInput.value);
+
+    alert("บันทึกข้อมูลเรียบร้อย");
+}
+
+
+function staffLogin(){
+    if(staffPass.value==="224236"){
+        backTo("page6");
+        data.innerText = localStorage.getItem("customerData") || "ยังไม่มีข้อมูล";
+    } else {
+        staffMsg.innerText="รหัสไม่ถูกต้อง";
+    }
+}
+
+</script>
+
+</body>
+</html>
