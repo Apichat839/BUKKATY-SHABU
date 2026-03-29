@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เมนูชาบู - Bukkaty Shabu</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Noto+Sans+Thai:wght@100..900&display=swap">
+    
+    <link rel="stylesheet" href="index.css"> 
+
+    <style>
+        
+        body {
+            background-color: #ffffff; 
+            margin: 0;
+            font-family: 'Noto Sans Thai', sans-serif;
+        }
+
+        
+        .transparent-nav {
+            background-color: #1a1a1a; 
+            padding: 10px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .logonav {
+            height: 50px;
+        }
+
+        .nav-menu a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
+
+        .nav-menu a.active {
+            color: #ff4d4d;
+        }
+
+        .nav-cart {
+            color: white;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        
+        .menu-page {
+            padding: 120px 20px 50px; 
+            max-width: 1100px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        
+        .menu-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 50px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .tab-item {
+            text-decoration: none;
+            color: #ce363a;
+            font-weight: bold;
+            font-size: 1.2rem;
+            position: relative;
+        }
+
+       
+        .tab-item.active::after {
+            content: "";
+            position: absolute;
+            bottom: -12px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: #ce363a;
+        }
+
+        
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+        }
+
+        .menu-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.3s;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-5px);
+        }
+
+        
+        .img-container {
+            width: 100%;
+            max-width: 220px;
+            aspect-ratio: 1/1;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 6px solid #333;
+            margin-bottom: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+
+        .img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+       
+        .menu-card h3 {
+            color: #333;
+            font-size: 1.15rem;
+            font-weight: bold;
+            margin: 5px 0 0 0;
+        }
+
+        
+        @media (max-width: 768px) {
+            .menu-grid {
+                grid-template-columns: repeat(2, 1fr); 
+            }
+            .nav-menu {
+                display: none; 
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="transparent-nav">
+        <div class="nav-container">
+            <a href="index.html">
+                <img src="imgs/11bkt.png" class="logonav" alt="Bukkaty Shabu Logo">
+            </a>
+
+            <div class="nav-menu">
+                <a href="index.html">หน้าหลัก</a>
+                <a href="shabu-menu.html" class="active">เมนูชาบูเติมความอร่อย</a> 
+                <a href="#">เมนูเติมความสดชื่น</a>
+                <a href="#">เมนูเติมความอร่อยกลับบ้าน</a>
+             
+            </div>
+
+            <div class="nav-cart">
+                <i class="fas fa-search"></i>
+                <div style="position: relative;">
+                    <i class="fas fa-shopping-basket"></i>
+                    <span style="position: absolute; top: -10px; right: -10px; background: red; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px;">0</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="menu-page">
+        <div class="menu-tabs">
+            <a href="#" class="tab-item active">น้ำซุป</a>
+        </div>
+
+        <div class="menu-grid">
+            <div class="menu-card">
+                <div class="img-container">
+                    <img src="imgs/l1.jpg" alt="น้ำซุปหม่าล่า">
+                </div>
+                <h3>น้ำซุปหม่าล่า</h3>
+                
+            </div>
+            
+            <div class="menu-card">
+                <div class="img-container">
+                    <img src="imgs/dd1.jpg" alt="ซุปน้ำดำ">
+                </div>
+                <h3>ซุปน้ำดำ</h3>
+            </div>
+            
+            <div class="menu-card">
+                <div class="img-container">
+                    <img src="imgs/ss1.jpg" alt="ซุปน้ำใส">
+                </div>
+                <h3>ซุปน้ำใส</h3>
+            </div>
+            
+            <div class="menu-card">
+                <div class="img-container">
+                    <img src="imgs/ks1.jpg" alt="ซุปมิโซะทงคตซึ">
+                </div>
+                <h3>ซุปมิโซะทงคตซึ</h3>
+            </div>
+        </div>
+
+       <section class="shabu-section" style="margin-top: 50px;">
+    <div class="menu-tabs">
+        <a href="#" class="tab-item active">เมนูชาบู</a>
+    </div>
+
+    <div class="menu-grid">
+        <div class="menu-card">
+            <div class="img-container">
+                <img src="imgs/wk1.jpg" alt="เนื้อวากิว">
+            </div>
+            <h3>เนื้อวากิว</h3>
+            <h4> 59 บาท.</h4>
+        </div>
+        
+        <div class="menu-card">
+            <div class="img-container">
+                <img src="imgs/pp1.jfif" alt="หมูสไลด์">
+            </div>
+            <h3>เนื้อหมูหมูสไลด์</h3>
+            <h4> 59 บาท.</h4>
+        </div>
+        
+        <div class="menu-card">
+            <div class="img-container">
+                <img src="imgs/smm1.jfif" alt="แซลมอน">
+            </div>
+            <h3>ปลาแซลมอน</h3>
+            <h4> 59 บาท.</h4>
+        </div>
+        
+        <div class="menu-card">
+            <div class="img-container">
+                <img src="imgs/sg1.jfif" alt="กุ้งสด">
+            </div>
+            <h3>กุ้งสดแม่น้ำ</h3>
+            <h4> 59 บาท.</h4>
+        </div>
+
+         <div class="menu-card">
+            <div class="img-container">
+                <img src="imgs/ch1.jfif" alt="ไก่สไลด์">
+            </div>
+            <h3>ไก่สไลด์</h3>
+            <h4> 59 บาท.</h4>
+        </div>
+
+            <div class="menu-card">
+            <div class="img-container">
+                <img src="imgs/mm11.jfif" alt="ปลาหมึก">
+            </div>
+            <h3>ปลาหมึก</h3>
+            <h4> 59 บาท.</h4>
+        </div>
+
+       <div class="menu-card">
+            <div class="img-container">
+                <img src="imgs/ts11.jfif" alt="เครื่องในหมู">
+            </div>
+            <h3>เครื่องในหมู</h3>
+            <h4> 59 บาท.</h4>
+        </div>
+        
+        <div class="menu-card">
+            <div class="img-container">
+                <img src="imgs/ch11.jfif" alt="ปู">
+            </div>
+            <h3>ปู</h3>
+            <h4> 59 บาท.</h4>
+        </div>
+ 
+        <div class="menu-card">
+            <div class="img-container">
+                <img src="imgs/lh11.jfif" alt="ลูกชิ้นชีส">
+            </div>
+            <h3>ลูกชิ้นชีส</h3>
+            <h4> 39 บาท.</h4>
+        </div>
+      
+           <div class="menu-card">
+            <div class="img-container">
+                <img src="imgs/bb1.jfif" alt="ลูกชิ้นซาลาเปาชีส">
+            </div>
+            <h3>ลูกชิ้นซาลาเปาชีส</h3>
+            <h4> 39 บาท.</h4>
+        </div>
+      
+           <div class="menu-card">
+            <div class="img-container">
+                <img src="imgs/hh.jfif" alt="ชุดเห็ดรวมหรรษา">
+            </div>
+            <h3>ชุดเห็ดรวมหรรษา</h3>
+            <h4> 49 บาท.</h4>
+        </div> 
+       
+         <div class="menu-card">
+            <div class="img-container">
+                <img src="imgs/pkk.jfif" alt="ชุดผักรวมมิตรหรรษา">
+            </div>
+            <h3>ชุดผักรวมมิตรหรรษา</h3>
+             <h4> 49 บาท.</h4>
+        </div>   
+    </div>
+
+       <section class="shabu-section" style="margin-top: 50px;">
+    <div class="menu-tabs">
+        <a href="#" class="tab-item active">ชุดข้าวสุดอิ่ม</a>
+    </div>
+    
+    <div class="menu-grid">
+          <div class="menu-card">
+            <div class="img-container">
+                <img src="imgs/kw.jfif" alt="ข้าวเนื้อวากิวสไตล์ญี่ปุ่น">
+            </div>
+            <h3>ข้าวเนื้อวากิวสไตล์ญี่ปุ่น</h3>
+            <h4> 59 บาท.</h4>
+        </div> 
+
+         <div class="menu-card">
+            <div class="img-container">
+                <img src="imgs/kj.jfif" alt="ข้าวไข่ออนเซนญี่ปุ่น">
+            </div>
+            <h3>ข้าวไข่ออนเซนญี่ปุ่น</h3>
+            <h4> 59 บาท.</h4>
+        </div> 
+            
+            <div class="menu-card">
+            <div class="img-container">
+                <img src="imgs/ky.jfif" alt="ข้าวปลาไหลย่างญี่ปุ่น">
+            </div>
+            <h3>ข้าวปลาไหลย่างญี่ปุ่น</h3>
+            <h4> 59 บาท.</h4>
+        </div>
+            
+            <div class="menu-card">
+            <div class="img-container">
+                <img src="imgs/yy.jfif" alt="บะหมี่หยกเป็ดย่าง">
+            </div>
+            <h3>บะหมี่หยกเป็ดย่าง</h3>ฃ
+            <h4> 59 บาท.</h4>
+            </div> 
+        </div>
+
+    <section class="shabu-section" style="margin-top: 50px;">
+    <div class="menu-tabs">
+        <a href="#" class="tab-item active">น้ำจิ้ม</a>
+    </div>
+    
+    <div class="menu-grid">
+            <div class="menu-card">
+                <div class="img-container">
+                    <img src="imgs/sk1.png" alt="น้ำจิ้มสุกี้">
+                </div>
+                <h3>น้ำจิ้มสุกี้</h3>
+                
+            </div>
+            
+            <div class="menu-card">
+                <div class="img-container">
+                    <img src="imgs/ng1.png" alt="น้ำจิ้มงา">
+                </div>
+                <h3>น้ำจิ้มงา</h3>
+            </div>
+            
+            <div class="menu-card">
+                <div class="img-container">
+                    <img src="imgs/sc1.png" alt="น้ำจิ้มซีฟู๊ด">
+                </div>
+                <h3>น้ำจิ้มซีฟู๊ด</h3>
+            </div>
+            
+            <div class="menu-card">
+                <div class="img-container">
+                    <img src="imgs/sm1.png" alt="น้ำจิ้มหม่าล่า">
+                </div>
+                <h3>น้ำจิ้มหม่าล่า</h3>
+            </div>
+        </div>
+<section id="dipping-sauce-section" class="shabu-section" style="margin-top: 50px;">
+    <div class="menu-tabs">
+        <a href="#" class="tab-item active"></a>
+    </div>
+    
+
+</section>
+<script>
+        let isRedirecting = false;
+
+        window.addEventListener('scroll', function() {
+          
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 10) {
+                if (!isRedirecting) {
+                    isRedirecting = true;
+                    
+                   
+                    window.location.href = "Drinks-menu.html"; 
+                }
+            }
+        });
+    </script>
+    </main>
+ 
+</body>
+</html>
+

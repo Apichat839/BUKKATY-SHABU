@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เมนูชาบู - Bukkaty Shabu</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Noto+Sans+Thai:wght@100..900&display=swap">
+    
+    <link rel="stylesheet" href="index.css"> 
+
+    <style>
+        
+        body {
+            background-color: #ffffff; 
+            margin: 0;
+            font-family: 'Noto Sans Thai', sans-serif;
+        }
+
+        
+        .transparent-nav {
+            background-color: #1a1a1a; 
+            padding: 10px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .logonav {
+            height: 50px;
+        }
+
+        .nav-menu a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
+
+        .nav-menu a.active {
+            color: #ff4d4d;
+        }
+
+        .nav-cart {
+            color: white;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        
+        .menu-page {
+            padding: 120px 20px 50px; 
+            max-width: 1100px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        
+        .menu-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 50px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .tab-item {
+            text-decoration: none;
+            color: #ce363a;
+            font-weight: bold;
+            font-size: 1.2rem;
+            position: relative;
+        }
+
+       
+        .tab-item.active::after {
+            content: "";
+            position: absolute;
+            bottom: -12px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: #ce363a;
+        }
+
+        
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+        }
+
+        .menu-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.3s;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-5px);
+        }
+
+        
+        .img-container {
+            width: 100%;
+            max-width: 220px;
+            aspect-ratio: 1/1;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 6px solid #333;
+            margin-bottom: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+
+        .img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+       
+        .menu-card h3 {
+            color: #333;
+            font-size: 1.15rem;
+            font-weight: bold;
+            margin: 5px 0 0 0;
+        }
+
+        
+        @media (max-width: 768px) {
+            .menu-grid {
+                grid-template-columns: repeat(2, 1fr); 
+            }
+            .nav-menu {
+                display: none; 
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="transparent-nav">
+        <div class="nav-container">
+            <a href="index.html">
+                <img src="imgs/11bkt.png" class="logonav" alt="Bukkaty Shabu Logo">
+            </a>
+
+           <div class="nav-menu">
+           <a href="index.html">หน้าหลัก</a>
+           <a href="shabu-menu.html">เมนูชาบูเติมความอร่อย</a>
+    
+           <a href="Drinks-menu.html">เมนูเติมความสดชื่น</a> 
+           <a href="DFTH.html" class="active">เมนูความอร่อยกลับบ้าน</a>
+         
+           </div>
+
+            <div class="nav-cart">
+                <i class="fas fa-search"></i>
+                <div style="position: relative;">
+                    <i class="fas fa-shopping-basket"></i>
+                    <span style="position: absolute; top: -10px; right: -10px; background: red; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px;">0</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+   <main class="menu-page">
+        <div class="menu-tabs">
+            <a href="#" class="tab-item active">เมนูความอร่อยกลับบ้าน</a>
+        </div>
+
+        <div class="menu-grid">
+            <div class="menu-card">
+                <div class="img-container">
+                    <img src="imgs/ms1.jpg" alt="ชุดสุขใจพุงอิ่ม">
+                </div>
+                <h3>ชุดอิ่มคุ้มหมูฉ่ำผักชื่น</h3>
+                <h4> 299 บาท.</h4>
+            </div>
+
+               
+            <div class="menu-card">
+                <div class="img-container">
+                    <img src="imgs/ms2.jpg" alt="ชุดสุขคุ้มมหาสมุทร">
+                </div>
+                <h3>ชุดสุดคุ้มมหาสมุทร</h3>
+                <h4> 299 บาท.</h4>
+            </div>
+            
+            <div class="menu-card">
+                <div class="img-container">
+                    <img src="imgs/ms3.jpg" alt="ชุดสุขล้นโต๊ะ">
+                </div>
+                <h3>ชุดสุขล้นโต๊ะ</h3>
+                <h4> 399 บาท.</h4>
+                </div>
+
+            <div class="menu-card">
+                <div class="img-container">
+                    <img src="imgs/ms4.jpg" alt="ชุดจักรพรรดิอิคุระ">
+                </div>
+                <h3>ชุดจักรพรรดิอิคุระ</h3>
+                <h4> 399 บาท.</h4>
+
+            </div>
+           
+            <div class="menu-card">
+                <div class="img-container">
+                    <img src="imgs/ms5.jpg" alt="ชุดอิ่มพุงอุ่นใจ Bukkaty">
+                </div>
+                <h3>ชุดอิ่มพุงอุ่นใจ Bukkaty</h3>
+                <h4> 399 บาท.</h4>
+                
+            </div>
+            
+            
+            <div class="menu-card">
+                <div class="img-container">
+                    <img src="imgs/ms6.jpg" alt="ชุดจักรพรรวากิว ">
+                </div>
+                <h3>ชุดจักรพรรวากิว</h3>
+                <h4> 599 บาท.</h4>
+            </div>
+
+            
+            <div class="menu-card">
+                <div class="img-container">
+                    <img src="imgs/ms7.jpg" alt="ชุดแซลมอนเลิฟเวอร์ & เทมปุระ">
+                </div>
+                <h3>ชุดแซลมอนเลิฟเวอร์ & เทมปุระ</h3>
+                <h4> 599 บาท.</h4>
+            </div>
+
+            
+            <div class="menu-card">
+                <div class="img-container">
+                    <img src="imgs/ms8.jpg" alt="ชุดแฮปปี้ Bukkaty">
+                </div>
+                <h3>ชุดแฮปปี้ Bukkaty</h3>
+                <h4> 599 บาท.</h4>
+            </div>
+      
+
+    
+
+
+    <section id="dipping-sauce-section" class="shabu-section" style="margin-top: 50px;">
+    <div class="menu-tabs">
+        <a href="#" class="tab-item active"></a>
+    </div>
+    
+
+</section>
+
+    </main>
+
+    </body>
+</html>
