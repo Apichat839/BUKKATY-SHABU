@@ -235,7 +235,7 @@
                <a href="index.html">หน้าหลัก</a>
                <a href="shabu-menu.html">เมนูชาบูเติมความอร่อย</a>
                <a href="Drinks-menu.html" class="active">เมนูเติมความสดชื่น</a> 
-               <a href="#">เมนูความอร่อยกลับบ้าน</a>
+               <a href="DFTH.html">เมนูความอร่อยกลับบ้าน</a>
            </div>
 
             <div class="nav-cart">
@@ -305,12 +305,12 @@
         </div>
     
 
-     <section class="shabu-section" style="margin-top: 50px;">
-    <div class="menu-tabs">
-        <a href="#" class="tab-item active">เมนูเติมความหวาน</a>
-    </div>
+        <section class="shabu-section" style="margin-top: 50px;">
+        <div class="menu-tabs">
+            <a href="#" class="tab-item active">เมนูเติมความหวาน</a>
+        </div>
     
-    <div class="menu-grid">
+        <div class="menu-grid">
             <div class="menu-card">
                 <div class="img-container">
                     <img src="imgs/iclm2.jpg" alt="ไอศกรีมเลม่อน">
@@ -373,75 +373,73 @@
                 <h3>ซาลาเปาเนื้อหมักพริกไทยลาบ</h3>
                 <h4> 29 บาท.</h4>
             </div>
-    </div>
-
-    <section id="dipping-sauce-section" class="shabu-section" style="margin-top: 50px;">
-        <div class="menu-tabs">
-            <a href="#" class="tab-item active"></a>
         </div>
-    </section>
 
-    <script>
-        // --- ส่วนที่เพิ่มใหม่: ระบบ Modal และ ตะกร้าสินค้า ---
-        const modal = document.getElementById('order-modal');
-        const modalImg = document.getElementById('modal-img');
-        const modalTitle = document.getElementById('modal-title');
-        const modalPriceDisp = document.getElementById('modal-price-display');
-        const qtyText = document.getElementById('current-qty');
-        const cartCount = document.getElementById('cart-count');
+        <section id="dipping-sauce-section" class="shabu-section" style="margin-top: 50px;">
+            <div class="menu-tabs">
+                <a href="#" class="tab-item active"></a>
+            </div>
+        </section>
 
-        let totalInCart = 0;
+        <script>
+            const modal = document.getElementById('order-modal');
+            const modalImg = document.getElementById('modal-img');
+            const modalTitle = document.getElementById('modal-title');
+            const modalPriceDisp = document.getElementById('modal-price-display');
+            const qtyText = document.getElementById('current-qty');
+            const cartCount = document.getElementById('cart-count');
 
-        // เปิด Modal เมื่อคลิกการ์ดเมนู
-        document.querySelectorAll('.menu-card').forEach(card => {
-            card.addEventListener('click', () => {
-                const title = card.querySelector('h3').innerText;
-                const img = card.querySelector('img').src;
-                const priceTag = card.querySelector('h4');
-                const price = priceTag ? priceTag.innerText : "0 บาท.";
-
-                modalTitle.innerText = title;
-                modalImg.src = img;
-                modalPriceDisp.innerText = "ราคา " + price;
-                qtyText.innerText = 1; // รีเซ็ตจำนวนเป็น 1
-                modal.style.display = 'flex';
-            });
-        });
-
-        // ปิด Modal
-        document.getElementById('close-modal').onclick = () => modal.style.display = 'none';
-        window.onclick = (event) => { if (event.target == modal) modal.style.display = 'none'; };
-
-        // เพิ่ม-ลดจำนวน
-        document.getElementById('plus-qty').onclick = () => {
-            qtyText.innerText = parseInt(qtyText.innerText) + 1;
-        };
-        document.getElementById('minus-qty').onclick = () => {
-            let current = parseInt(qtyText.innerText);
-            if (current > 1) qtyText.innerText = current - 1;
-        };
-
-        // ยืนยันเพิ่มลงตะกร้า
-        document.getElementById('submit-btn').onclick = () => {
-            totalInCart += parseInt(qtyText.innerText);
+            // แก้ไข: ดึงค่าจาก localStorage
+            let totalInCart = parseInt(localStorage.getItem('cartCount')) || 0;
             cartCount.innerText = totalInCart;
-            alert(`เพิ่ม ${modalTitle.innerText} ลงตะกร้าเรียบร้อยแล้ว!`);
-            modal.style.display = 'none';
-        };
 
-        // --- โค้ด Scroll เปลี่ยนหน้าเดิมของคุณ ---
-        let isRedirecting = false;
+            document.querySelectorAll('.menu-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const title = card.querySelector('h3').innerText;
+                    const img = card.querySelector('img').src;
+                    const priceTag = card.querySelector('h4');
+                    const price = priceTag ? priceTag.innerText : "0 บาท.";
+                    modalTitle.innerText = title;
+                    modalImg.src = img;
+                    modalPriceDisp.innerText = "ราคา " + price;
+                    qtyText.innerText = 1;
+                    modal.style.display = 'flex';
+                });
+            });
 
-        window.addEventListener('scroll', function() {
-            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 10) {
-                if (!isRedirecting) {
-                    isRedirecting = true;
-                    window.location.href = "DFTH.html"; 
+            document.getElementById('close-modal').onclick = () => modal.style.display = 'none';
+            window.onclick = (event) => { if (event.target == modal) modal.style.display = 'none'; };
+
+            document.getElementById('plus-qty').onclick = () => {
+                qtyText.innerText = parseInt(qtyText.innerText) + 1;
+            };
+            document.getElementById('minus-qty').onclick = () => {
+                let current = parseInt(qtyText.innerText);
+                if (current > 1) qtyText.innerText = current - 1;
+            };
+
+            document.getElementById('submit-btn').onclick = () => {
+                totalInCart += parseInt(qtyText.innerText);
+                cartCount.innerText = totalInCart;
+                
+                // แก้ไข: บันทึกค่า
+                localStorage.setItem('cartCount', totalInCart);
+                
+                alert(`เพิ่ม ${modalTitle.innerText} ลงตะกร้าเรียบร้อยแล้ว!`);
+                modal.style.display = 'none';
+            };
+
+            let isRedirecting = false;
+            window.addEventListener('scroll', function() {
+                if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 10) {
+                    if (!isRedirecting) {
+                        isRedirecting = true;
+                        window.location.href = "DFTH.html"; 
+                    }
                 }
-            }
-        });
-    </script>
+            });
+        </script>
     </main>
-
+    
     </body>
 </html>

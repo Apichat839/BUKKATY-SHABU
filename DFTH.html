@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Noto+Sans+Thai:wght@100..900&display=swap">
     
-    <link rel="stylesheet" href="index.css"> 
+    <link rel="stylesheet" href="index.css">
 
     <style>
         /* --- โค้ด CSS เดิมของคุณ --- */
@@ -351,7 +351,6 @@
         </section>
 
         <script>
-            // --- ส่วนที่เพิ่มใหม่: ระบบ Modal และ ตะกร้าสินค้า ---
             const modal = document.getElementById('order-modal');
             const modalImg = document.getElementById('modal-img');
             const modalTitle = document.getElementById('modal-title');
@@ -359,29 +358,27 @@
             const qtyText = document.getElementById('current-qty');
             const cartCount = document.getElementById('cart-count');
 
-            let totalInCart = 0;
+            // แก้ไข: ดึงค่าจาก localStorage
+            let totalInCart = parseInt(localStorage.getItem('cartCount')) || 0;
+            cartCount.innerText = totalInCart;
 
-            // เปิด Modal เมื่อคลิกการ์ดเมนู
             document.querySelectorAll('.menu-card').forEach(card => {
                 card.addEventListener('click', () => {
                     const title = card.querySelector('h3').innerText;
                     const img = card.querySelector('img').src;
                     const priceTag = card.querySelector('h4');
                     const price = priceTag ? priceTag.innerText : "0 บาท.";
-
                     modalTitle.innerText = title;
                     modalImg.src = img;
                     modalPriceDisp.innerText = "ราคา " + price;
-                    qtyText.innerText = 1; // รีเซ็ตจำนวนเป็น 1
+                    qtyText.innerText = 1;
                     modal.style.display = 'flex';
                 });
             });
 
-            // ปิด Modal
             document.getElementById('close-modal').onclick = () => modal.style.display = 'none';
             window.onclick = (event) => { if (event.target == modal) modal.style.display = 'none'; };
 
-            // เพิ่ม-ลดจำนวน
             document.getElementById('plus-qty').onclick = () => {
                 qtyText.innerText = parseInt(qtyText.innerText) + 1;
             };
@@ -390,10 +387,13 @@
                 if (current > 1) qtyText.innerText = current - 1;
             };
 
-            // ยืนยันเพิ่มลงตะกร้า
             document.getElementById('submit-btn').onclick = () => {
                 totalInCart += parseInt(qtyText.innerText);
                 cartCount.innerText = totalInCart;
+                
+                // แก้ไข: บันทึกค่า
+                localStorage.setItem('cartCount', totalInCart);
+                
                 alert(`เพิ่ม ${modalTitle.innerText} ลงตะกร้าเรียบร้อยแล้ว!`);
                 modal.style.display = 'none';
             };

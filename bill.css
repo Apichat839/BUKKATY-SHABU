@@ -1,0 +1,94 @@
+body {
+    font-family: 'Kanit' , sans-serif;
+    background-image: url(IMG/Logo.jpg);
+    background-repeat: no-repeat;
+    background-size: cover;
+    color: white;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+}
+
+.bill {
+    background-color: #1a1a1a;
+    width: 100%;
+    max-width: 380px;
+    border: 1px solid #d4af37;
+    border-radius: 20px;
+    padding: 25px;
+}
+
+.namebrand {
+    color: #d4af37; 
+    text-align: center;
+    letter-spacing: 2px;
+}
+
+.subname {
+    color: #b22222;
+    text-align: center;
+    font-size: 0.8rem; 
+    margin-bottom: 20px;
+}
+
+.total {
+    display: flex;
+    justify-content: space-between;
+    color: #d4af37;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin: 2px;
+}
+
+.pay {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, #d4af37, #f2d06b);
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.qr {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    justify-content: center;
+    align-items: center;
+}
+
+.qr1 {
+    background: white;
+    color: black;
+    padding: 20px;
+    border-radius: 15px;
+    text-align: center;
+    max-width: 300px;
+}
+
+#qr-img {
+    width: 100%;
+    margin-top: 15px;
+}
+
+.close {
+    margin-top: 15px;
+    padding: 10px 20px;
+    background: #333;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+
+.item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 8px;
+}

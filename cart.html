@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ตะกร้าสินค้า - Bukkaty Shabu</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@100..900&display=swap">
+    <link rel="stylesheet" href="index.css"> <link rel="stylesheet" href="cart.css">
+</head>
+<body>
+    <nav class="transparent-nav" style="background:#1a1a1a; position:fixed; width:100%; top:0; z-index:1000;">
+        <div class="nav-container" style="max-width:1200px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; padding:10px 20px;">
+            <a href="index.html"><img src="imgs/11bkt.png" style="height:50px;"></a>
+            <a href="shabu-menu.html" style="color:white; text-decoration:none;"> <i class="fas fa-chevron-left"></i> กลับไปเลือกเมนู</a>
+        </div>
+    </nav>
+
+    <main class="cart-page">
+        <div class="cart-container">
+            <h2><i class="fas fa-shopping-basket"></i> รายการที่คุณสั่ง</h2>
+            <div id="cart-list"></div>
+            <div id="summary-area" class="cart-summary">
+                <div class="total-line">รวมทั้งหมด: <span id="total-price">0</span> บาท</div>
+                <button class="btn-send" onclick="sendOrder()">ส่งรายการอาหาร</button>
+                <button class="btn-clear" onclick="clearCart()">ล้างตะกร้า</button>
+            </div>
+        </div>
+    </main>
+
+    <script src="cart.js"></script>
+</body>
+</html>
