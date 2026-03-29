@@ -1,0 +1,89 @@
+body {
+    background-image: url(logo.jpg);
+    background-size: cover;
+    background-repeat: no-repeat;
+    margin-top: 200px;
+}
+/* จัดการ Layout หลัก */
+.feedback-container {
+    border: 5px solid #ffca08;
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #2b2727;
+}
+
+h3 { 
+    margin-top: 0; 
+    color: #ffca08;
+    font-size: 25px; 
+}
+
+/* ระบบดาว */
+.rating {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    margin-bottom: 15px;
+}
+
+.rating input { display: none; }
+
+.rating label {
+    font-size: 35px;
+    color: #ddd;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.rating input:checked ~ label,
+.rating label:hover,
+.rating label:hover ~ label {
+    color: #ffca08;
+}
+
+/* ช่องคอมเม้น */
+textarea {
+    width: 100%;
+    height: 120px;
+    padding: 12px;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    resize: none;
+    box-sizing: border-box;
+}
+
+/* ปุ่มกด */
+button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 15px;
+    border: none;
+    border-radius: 10px;
+    background-color: #ffca08;
+    color: #333;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover { background-color: #7f6815; }
+
+/* หน้า Success */
+.hidden { display: none; }
+
+p {
+    color: red;
+}
+
+.success-icon {
+    font-size: 60px;
+    color: #28a745;
+    margin-bottom: 10px;
+}
+
+.reset-btn { background-color: #6c757d; }
