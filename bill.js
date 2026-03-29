@@ -10,23 +10,24 @@ function displayOrder() {
     totalPrice = 0;
 
     if (myOrder.length === 0) {
-        orderContainer.innerHTML ="<p style='text-align:center; color:#666;'>ยังไม่มีรายการอาหาร</p>";
+        orderContainer.innerHTML = "<p class='empty-cart'>ยังไม่มีรายการอาหาร</p>";
         return;
     }
 
-    myOrder.forEach(item =>{
+    myOrder.forEach(item => {
         const itemTotal = item.price * item.qty;
         totalPrice += itemTotal;
+        
         orderContainer.innerHTML += `
             <div class="item">
-                <div class="item-img">
-                <img src="${item.image || 'placeholder.png'}" class="item-img" alt="${item.name}">
+                <div class="item-info">
+                    <img src="${item.image || 'placeholder.png'}" alt="${item.name}" class="order-thumbnail">
                     <div class="item-details">
-                        <span>${item.name}</span> <br>
-                        <small style="color:#d4af37">x ${item.qty}</small>
+                        <span class="item-name">${item.name}</span>
+                        <small class="item-qty">x ${item.qty}</small>
                     </div>
                 </div>
-                <span>${itemTotal.toLocaleString()}.-<span>
+                <span class="item-price-total">${itemTotal.toLocaleString()}.-</span>
             </div>
         `;
     });

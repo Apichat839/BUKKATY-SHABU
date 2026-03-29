@@ -1,6 +1,6 @@
 body {
     font-family: 'Kanit' , sans-serif;
-    background-image: url(IMG/Logo.jpg);
+    background-image: url(imgs/logoFeedBack.jpg);
     background-repeat: no-repeat;
     background-size: cover;
     color: white;
@@ -92,3 +92,42 @@ body {
     border-bottom: 1px solid #333;
     padding-bottom: 8px;
 }
+
+/* ส่วนที่จัดการโครงสร้างที่สร้างจาก JS */
+.item-info {
+    display: flex;
+    align-items: center;
+    gap: 12px; /* เว้นระยะห่างระหว่างรูปกับข้อความ */
+}
+
+.order-thumbnail {
+    width: 50px;  /* กำหนดความกว้างรูป */
+    height: 50px; /* กำหนดความสูงรูป */
+    object-fit: cover; /* ป้องกันรูปบิดเบี้ยว */
+    border-radius: 8px; /* ทำมุมโค้งให้เข้ากับดีไซน์บิล */
+    border: 1px solid #444;
+}
+
+.item-details {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.item-name {
+    font-size: 0.95rem;
+    color: white;
+}
+
+.item-qty {
+    font-size: 0.8rem;
+    color: #888;
+}
+
+/* ปรับแต่งราคาในรายการ */
+.item-price-total {
+    align-self: center;
+    font-weight: bold;
+    color: #d4af37;
+}
+
