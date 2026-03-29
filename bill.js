@@ -1,5 +1,5 @@
 // ดึงข้อมูลจาก LocalStorage
-const savedOrder = localStorage.getItem('customerOrder');
+const savedOrder = sessionStorage.getItem('customerOrder');
 let myOrder = savedOrder ? JSON.parse(savedOrder) : [];
 
 const orderContainer = document.getElementById('order-item');
@@ -13,10 +13,11 @@ function displayOrder() {
     if (myOrder.length === 0) {
         orderContainer.innerHTML = "<p class='empty-cart' style='text-align:center; color:#666; padding:20px;'>ยังไม่มีรายการอาหาร</p>";
         totalDisplay.innerText = "0.-";
+        // ถ้าตะกร้าว่าง ให้รีเซ็ตเลข count เป็น 0 ด้วย
+        sessionStorage.setItem('cartCount', 0);
         return;
     }
 
-    // เพิ่ม index เพื่อใช้ระบุแถวที่จะลบ
     myOrder.forEach((item, index) => {
         const itemTotal = item.price * item.qty;
         totalPrice += itemTotal;
@@ -46,10 +47,14 @@ function removeItem(index) {
         // 1. ลบออกจากตัวแปร Array
         myOrder.splice(index, 1);
         
-        // 2. อัปเดต LocalStorage ให้จำค่าที่ลบแล้ว
-        localStorage.setItem('customerOrder', JSON.stringify(myOrder));
+        // 2. คำนวณจำนวนชิ้นใหม่ (qty) เพื่ออัปเดตตัวเลขที่ไอคอนตะกร้า
+        let newTotalQty = myOrder.reduce((sum, item) => sum + item.qty, 0);
         
-        // 3. วาดหน้าจอใหม่
+        // 3. บันทึกกลับลง sessionStorage
+        sessionStorage.setItem('customerOrder', JSON.stringify(myOrder));
+        sessionStorage.setItem('cartCount', newTotalQty);
+        
+        // 4. วาดหน้าจอใหม่
         displayOrder();
     }
 }
@@ -59,9 +64,14 @@ function generateQR() {
     const modalPrice = document.getElementById('price');
     const qrImg = document.getElementById('qr-img');
 
+    if (totalPrice <= 0) {
+        alert("ไม่มีรายการชำระเงิน");
+        return;
+    }
+
     modalPrice.innerText = totalPrice.toLocaleString();
 
-    const promptpayid = "0980509592"; //
+    const promptpayid = "0980509592"; 
     qrImg.src = `https://promptpay.io/${promptpayid}/${totalPrice}.png`;
     modal.style.display = "flex";
 }
@@ -75,10 +85,17 @@ function closeModal() {
 
 function confirmPayment() {
     if (confirm("คุณชำระเงินเรียบร้อยแล้วใช่หรือไม่? ระบบจะเริ่มรายการใหม่ทันที")) {
-        localStorage.removeItem('customerOrder');
+        // ล้างข้อมูลใน sessionStorage ทั้งหมด
+        sessionStorage.removeItem('customerOrder');
+        sessionStorage.removeItem('cartCount');
+        
         myOrder = [];
         closeModal();
         displayOrder();
+        
+        alert("ขอบคุณที่ใช้บริการครับ");
+        // กลับไปหน้าแรก (เลือกไฟล์หน้าแรกของคุณ เช่น index.html หรือ menu1.html)
+        window.location.href = "index.html"; 
     }
 }
 
