@@ -131,3 +131,23 @@ body {
     color: #d4af37;
 }
 
+/* เพิ่มต่อท้ายไฟล์ bill.css */
+
+.btn-feedback {
+    display: block;
+    margin-top: 15px; /* เว้นระยะห่างจากปุ่มจ่ายเงิน */
+    padding: 12px;
+    text-align: center;
+    text-decoration: none; /* เอาเส้นใต้ลิงก์ออก */
+    color: #d4af37; /* สีทอง #d4af37 ตาม namebrand */
+    border: 1px solid #d4af37;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.btn-feedback:hover {
+    background-color: rgba(212, 175, 55, 0.1); /* ไฮไลท์สีทองอ่อนๆ เมื่อเอาเมาส์วาง */
+    transform: translateY(-2px); /* ยกตัวขึ้นเล็กน้อย */
+}
