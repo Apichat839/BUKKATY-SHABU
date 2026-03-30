@@ -28,7 +28,7 @@ export default function AddTablePage() {
                 alert("บันทึกข้อมูลสำเร็จ!"); 
                 router.push('/staff/tables'); 
             } else {
-                alert("เกิดข้อผิดพลาด: " + (data.message || "ไม่สามารถเพิ่มข้อมูลได้"));
+                alert("เกิดข้อผิดพลาด: มีโต๊ะซ้ำ");
             }
         } catch (error) {
             alert("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาเช็คว่ารัน node server.js หรือยัง");
