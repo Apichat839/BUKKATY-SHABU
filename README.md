@@ -1,2 +1,0 @@
-# BUKKATY SHABU
-
