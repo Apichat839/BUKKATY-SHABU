@@ -162,6 +162,37 @@ app.post("/api/bookings/create", async (req, res) => {
     }
 });
 
+// --- เพิ่ม Model สำหรับจัดการโต๊ะ (สร้างไฟล์ models/tables.js เพิ่มด้วย) ---
+const tables = require('./models/tables'); 
+
+// --- API สำหรับจัดการโต๊ะ (Tables) แบบ NO TOKEN ---
+
+// 1. ดึงข้อมูลโต๊ะทั้งหมด
+app.get("/api/tables/all", async (req, res) => {
+    const response = await tables.getAllTables();
+    res.json(response);
+});
+
+// 2. เพิ่มโต๊ะใหม่ (เอา checkAccessToken ออกแล้ว)
+app.post("/api/tables/add", async (req, res) => {
+    const { table_no, capacity } = req.body;
+    const result = await tables.addTable(table_no, capacity);
+    res.json(result);
+});
+
+// 3. แก้ไขข้อมูลโต๊ะ (เอา checkAccessToken ออกแล้ว)
+app.put("/api/tables/update", async (req, res) => {
+    const { table_id, table_no, capacity, status } = req.body;
+    const result = await tables.updateTable(table_id, table_no, capacity, status);
+    res.json(result);
+});
+
+// 4. ลบข้อมูลโต๊ะ (เอา checkAccessToken ออกแล้ว)
+app.delete("/api/tables/delete/:id", async (req, res) => {
+    const result = await tables.deleteTable(req.params.id);
+    res.json(result);
+});
+
 app.listen(port, () => {
     console.log(`Bukkaty Shabu Backend running at http://${hostname}:${port}`);
 });
