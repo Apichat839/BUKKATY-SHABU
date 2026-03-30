@@ -61,10 +61,10 @@ app.get("/api/menu/all", async (req, res) => {
     res.json(response);
 });
 
-
+// --- API สำหรับดึงหมวดหมู่อาหาร (ต้องมีเพื่อให้หน้าเมนูแยกหัวข้อได้) ---
 app.get("/api/food_types/all", async (req, res) => {
     try {
-        const db = require('./db_pool'); //
+        const db = require('./db_pool');
         const [rows] = await db.execute("SELECT * FROM food_type ORDER BY food_type_id ASC");
         res.json({ isError: false, data: rows });
     } catch (err) {
@@ -128,17 +128,6 @@ app.post("/api/login", async (req, res) => {
     }
 });
 
-// --- API สำหรับดึงหมวดหมู่อาหาร (ต้องมีเพื่อให้หน้าเมนูแยกหัวข้อได้) ---
-app.get("/api/food_types/all", async (req, res) => {
-    try {
-        const db = require('./db_pool');
-        const [rows] = await db.execute("SELECT * FROM food_type ORDER BY food_type_id ASC");
-        res.json({ isError: false, data: rows });
-    } catch (err) {
-        res.json({ isError: true, errorMessage: err.message });
-    }
-});
-
 // --- API สำหรับการจองโต๊ะ (Bookings) ---
 app.post("/api/bookings/create", async (req, res) => {
     try {
@@ -191,6 +180,41 @@ app.put("/api/tables/update", async (req, res) => {
 app.delete("/api/tables/delete/:id", async (req, res) => {
     const result = await tables.deleteTable(req.params.id);
     res.json(result);
+});
+
+// --- API สำหรับดูประวัติและข้อมูลการจอง (เพิ่มต่อจากส่วนจัดการโต๊ะ) ---
+
+// 1. API ดึงประวัติการใช้โต๊ะ (Orders)
+app.get("/api/orders/history", async (req, res) => {
+    try {
+        const db = require('./db_pool');
+        // ดึงจากตาราง orders โดยตรง เพราะคุณเก็บชื่อโต๊ะไว้ใน table_name อยู่แล้วตอนบันทึกออเดอร์
+        const sql = `
+            SELECT * FROM orders 
+            ORDER BY order_date DESC
+        `;
+        const [rows] = await db.execute(sql);
+        res.json({ isError: false, data: rows });
+    } catch (err) {
+        res.json({ isError: true, errorMessage: err.message });
+    }
+});
+
+// 2. API ดึงข้อมูลการจองแยกตามเลขโต๊ะ
+app.get("/api/bookings/all_details", async (req, res) => {
+    try {
+        const db = require('./db_pool');
+        const sql = `
+            SELECT b.*, t.table_number 
+            FROM bookings b
+            LEFT JOIN tables t ON b.table_id = t.table_id
+            ORDER BY t.table_number ASC, b.booking_date ASC
+        `;
+        const [rows] = await db.execute(sql);
+        res.json({ isError: false, data: rows });
+    } catch (err) {
+        res.json({ isError: true, errorMessage: err.message });
+    }
 });
 
 app.listen(port, () => {
