@@ -162,43 +162,6 @@ app.post("/api/bookings/create", async (req, res) => {
     }
 });
 
-// --- เพิ่ม Model สำหรับจัดการโต๊ะ (สร้างไฟล์ models/tables.js เพิ่มด้วย) ---
-const tables = require('./models/tables'); 
-
-// --- API สำหรับจัดการโต๊ะ (Tables) ---
-
-// เพิ่มโต๊ะ (Add Table)
-app.post("/api/tables/add", checkAccessToken, async (req, res) => {
-    const { table_no, capacity } = req.body;
-    const result = await tables.addTable(table_no, capacity);
-    res.json(result);
-});
-
-// แก้ไขข้อมูลโต๊ะ (Edit Table)
-app.put("/api/tables/update", checkAccessToken, async (req, res) => {
-    const { table_id, table_no, capacity, status } = req.body;
-    const result = await tables.updateTable(table_id, table_no, capacity, status);
-    res.json(result);
-});
-
-// ลบข้อมูลโต๊ะ (Delete Table)
-app.delete("/api/tables/delete/:id", checkAccessToken, async (req, res) => {
-    const result = await tables.deleteTable(req.params.id);
-    res.json(result);
-});
-
-// แสดงยอดการจองแยกตามเลขโต๊ะ (Summary by Table)
-app.get("/api/tables/report", checkAccessToken, async (req, res) => {
-    const result = await tables.getTableBookingSummary();
-    res.json(result);
-});
-
-// ดึงข้อมูลโต๊ะทั้งหมด (สำหรับหน้าจัดการ)
-app.get("/api/tables/all", async (req, res) => {
-    const response = await tables.getAllTables();
-    res.json(response);
-});
-
 app.listen(port, () => {
     console.log(`Bukkaty Shabu Backend running at http://${hostname}:${port}`);
 });
