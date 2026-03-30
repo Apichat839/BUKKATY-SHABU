@@ -139,6 +139,29 @@ app.get("/api/food_types/all", async (req, res) => {
     }
 });
 
+// --- API สำหรับการจองโต๊ะ (Bookings) ---
+app.post("/api/bookings/create", async (req, res) => {
+    try {
+        const { table_id, customer_name, booking_date, number_of_guests } = req.body;
+        const db = require('./db_pool');
+
+        // คำสั่ง SQL อิงตามหัวข้อในตาราง bookings
+        const sql = `INSERT INTO bookings (table_id, customer_name, booking_date, number_of_guests) 
+                     VALUES (?, ?, ?, ?)`;
+        
+        const [result] = await db.execute(sql, [
+            table_id || null, 
+            customer_name, 
+            booking_date, 
+            number_of_guests
+        ]);
+
+        res.json({ isError: false, message: "จองโต๊ะสำเร็จ!", bookingId: result.insertId });
+    } catch (err) {
+        res.json({ isError: true, errorMessage: err.message });
+    }
+});
+
 app.listen(port, () => {
     console.log(`Bukkaty Shabu Backend running at http://${hostname}:${port}`);
 });
