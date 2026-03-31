@@ -1,0 +1,89 @@
+/* tablepage.module.css */
+.container {
+    /* ใช้ linear-gradient ทับรูปเพื่อให้อ่านอักษรขาวง่ายขึ้น */
+    background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), 
+                url('http://127.0.0.1:8080/imgs/bbg1.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed; /* ล็อครูปพื้นหลังไว้ไม่ให้ไถลตามการ scroll */
+    
+    padding: 2rem 1rem;
+    margin: 0;
+    height: 100vh; /* ให้สูงเต็มความสูงหน้าจอเสมอ */
+    width: 100%;       /* ให้กว้างเต็มจอ */
+    
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* จัดเนื้อหาให้อยู่กลางแนวนอน */
+}
+
+.title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-top: 1rem;
+    margin-bottom: 2.5rem;
+    color: #ffffff;
+    text-align: center;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+    width: 100%;
+    max-width: 600px; /* กำหนดความกว้างสูงสุดของเส้นขีดใต้ */
+    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+    padding-bottom: 1rem;
+}
+
+.menuList {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    width: 100%;
+    max-width: 500px; /* กำหนดความกว้างของกลุ่มปุ่มให้พอดีสายตา */
+}
+
+.menuButton {
+    width: 100%;
+    text-align: center; /* เปลี่ยนเป็นกึ่งกลางเพื่อให้ดูเป็นระเบียบในหน้าจอใหญ่ */
+    padding: 1.25rem;
+    border-radius: 1rem;
+    
+    /* เทคนิค Glassmorphism */
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    
+    color: #ffffff;
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6);
+    
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.menuButton:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.02); /* ขยายใหญ่ขึ้นเล็กน้อยเวลาเอาเมาส์วาง */
+    border-color: #ffffff;
+}
+
+.backButton {
+    margin-top: 3rem;
+    padding-bottom: 2rem;
+    color: #ffffff;
+    font-size: 1.1rem;
+    font-weight: 500;
+    text-decoration: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 1);
+    opacity: 0.8;
+}
+
+.backButton:hover {
+    opacity: 1;
+    color: #ffd700;
+    text-decoration: underline;
+}

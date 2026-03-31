@@ -1,6 +1,7 @@
 "use client";
 import React from 'react';
-import { useRouter } from 'next/navigation'; // เพิ่ม router สำหรับเปลี่ยนหน้า
+import { useRouter } from 'next/navigation';
+import styles from './tablepage.module.css';
 
 export default function TableMenuPage() {
     const router = useRouter();
@@ -13,26 +14,26 @@ export default function TableMenuPage() {
     ];
 
     return (
-        <div className="p-6 max-w-md mx-auto min-h-screen bg-white shadow-lg mt-4 border rounded">
-            <h1 className="text-xl font-bold mb-4 border-b pb-2">
+        <div className={styles.container}>
+            <h1 className={styles.title}>
                 ระบบจัดการโต๊ะ (Bukkaty Shabu)
             </h1>
-            <div className="flex flex-col gap-2">
+            <div className={styles.menuList}>
                 {menus.map((item, index) => (
                     <button 
                         key={index}
-                        onClick={() => router.push(item.path)} // สั่งให้เปลี่ยนหน้าตาม path
-                        className="w-full text-left p-4 rounded shadow-sm border border-gray-200 hover:bg-gray-100 transition-colors font-medium text-gray-700"
+                        // ใช้ Optional Chaining (?.) เพื่อป้องกัน Error หาก item เป็นค่าว่าง
+                        onClick={() => item?.path && router.push(item.path)}
+                        className={styles.menuButton}
                     >
-                        {item.title}
+                        {item?.title || "ไม่พบข้อมูล"}
                     </button>
                 ))}
             </div>
             
-            {/* ปุ่มย้อนกลับ เพื่อความสะดวกของพนักงาน */}
             <button 
                 onClick={() => router.push('/staff')} 
-                className="mt-6 w-full text-center text-sm text-gray-500 hover:text-gray-700 underline"
+                className={styles.backButton}
             >
                 กลับไปหน้าหลักของพนักงาน
             </button>
