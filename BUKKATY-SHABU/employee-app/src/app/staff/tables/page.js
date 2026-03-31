@@ -10,7 +10,7 @@ export default function TableMenuPage() {
         { title: "เพิ่มโต๊ะ", path: "/staff/tables/add" },
         { title: "แก้ไขข้อมูลโต๊ะ", path: "/staff/tables/edit" },
         { title: "ลบข้อมูลโต๊ะ", path: "/staff/tables/delete" },
-        { title: "แสดงยอดการจองโต๊ะแยกตามเลขโต๊ะ", path: "/staff/tables/history" }
+        { title: "แสดงยอดการโต๊ะใช้แยกตามเลขโต๊ะ", path: "/staff/tables/history" }
     ];
 
     return (
