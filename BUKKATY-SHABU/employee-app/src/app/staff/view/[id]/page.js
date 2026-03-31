@@ -21,7 +21,7 @@ export default function StaffViewOrderPage() {
                 const response = await fetch(`${API_BASE_URL}/api/orders/all`);
                 const res = await response.json();
                 if (!res.isError) {
-                    const found = res.data.find(o => String(o.id) === String(orderId));
+                    const found = res.data.find(o => String(o.order_id) === String(orderId));
                     if (found) {
                         setOrder(found);
                     } else {
