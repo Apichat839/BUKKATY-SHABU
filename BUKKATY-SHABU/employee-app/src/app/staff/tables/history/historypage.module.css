@@ -1,0 +1,121 @@
+.container {
+    background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), 
+                url('http://127.0.0.1:8080/imgs/bbg1.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    width: 100%;
+    min-height: 100vh;
+    padding: 2rem;
+    max-width: 1100px;
+    margin: 2.5rem auto;
+    color: #1a1a1a;
+    font-family: 'Inter', sans-serif;
+}
+
+.title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: #ffffff;
+    border-bottom: 3px solid #ede9fe;
+    padding-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tableSection {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.thead {
+    background-color: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.th {
+    padding: 1rem;
+    font-weight: 600;
+    color: #4b5563;
+    font-size: 0.95rem;
+}
+
+.tr {
+    border-bottom: 1px solid #f3f4f6;
+    transition: background-color 0.2s;
+}
+
+.tr:hover {
+    background-color: #f8fafc;
+}
+
+.td {
+    padding: 1rem;
+    font-size: 0.95rem;
+}
+
+.tableNo {
+    font-weight: 700;
+    color: #2563eb; /* สีน้ำเงิน */
+}
+
+.price {
+    font-weight: 700;
+    text-align: right;
+    color: #111827;
+}
+
+.statusBadge {
+    display: inline-block;
+    font-size: 0.75rem;
+    background-color: #f3f4f6;
+    color: #374151;
+    padding: 0.25rem 0.6rem;
+    border-radius: 9999px;
+    font-weight: 500;
+}
+
+.emptyState {
+    padding: 4rem;
+    text-align: center;
+    color: #9ca3af;
+    font-style: italic;
+}
+
+.backBtn {
+    margin-top: 2rem;
+    background: none;
+    border: none;
+    color: #6b7280;
+    cursor: pointer;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: color 0.2s;
+}
+
+.backBtn:hover {
+    color: #111827;
+    text-decoration: underline;
+}
+
+/* ปรับแต่งชิดขวาสำหรับ Header และ Cell */
+.textRight {
+    text-align: right;
+}
+
+.textCenter {
+    text-align: center;
+}

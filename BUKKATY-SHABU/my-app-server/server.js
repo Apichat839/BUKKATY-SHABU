@@ -1,7 +1,7 @@
 const express = require('express');
 const bp = require('body-parser');
 const cors = require("cors");
-const jwt = require('jsonwebtoken'); 
+const jwt = require('jsonwebtoken');
 const multer = require("multer");
 const path = require('path');
 
@@ -9,6 +9,7 @@ const path = require('path');
 const menu = require('./models/menu');
 const orders = require('./models/orders');
 const authen = require('./models/authen');
+const tables = require('./models/tables');
 
 const app = express();
 app.use(cors());
@@ -46,7 +47,7 @@ app.use('/imgs', express.static(path.join(__dirname, 'upload/img')));
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, "upload/img");
+        cb(null, path.join(__dirname, "upload/img"));
     },
     filename: (req, file, cb) => {
         const fileName = Date.now() + "_" + file.originalname;
@@ -72,24 +73,58 @@ app.get("/api/food_types/all", async (req, res) => {
     }
 });
 
-app.post("/api/menu/add", checkAccessToken, upload.single('file'), async (req, res) => {
-    const result = await menu.addMenu(
-        req.body.menu_name,
-        req.body.price,
-        req.body.food_type_id,
-        req.file ? req.file.filename : null
-    );
-    res.json(result);
+app.post("/api/menu/add", upload.single('file'), async (req, res) => {
+    try {
+        const result = await menu.addMenu(
+            req.body.menu_name,
+            req.body.price,
+            req.body.food_type_id,
+            req.file ? req.file.filename : null
+        );
+        res.json(result);
+    } catch (err) {
+        console.error("Backend Error:", err);
+        res.status(500).json({ isError: true, message: err.message });
+    }
+});
+
+// แก้ไขเมนู (update)
+app.put("/api/menu/update/:id", upload.single('file'), async (req, res) => {
+    try {
+        const menuId = req.params.id;
+        const result = await menu.updateMenu(
+            menuId,
+            req.body.menu_name,
+            req.body.price,
+            req.body.food_type_id
+        );
+        if (req.file) {
+            await menu.updateMenuImage(menuId, req.file.filename);
+        }
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ isError: true, message: err.message });
+    }
+});
+
+// ลบเมนู (delete)
+app.delete("/api/menu/delete/:id", async (req, res) => {
+    try {
+        const result = await menu.deleteMenu(req.params.id);
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ isError: true, message: err.message });
+    }
 });
 
 // --- API สำหรับออเดอร์ (Orders) ---
 app.post("/api/orders/create", async (req, res) => {
     // ปรับชื่อตัวแปรให้รองรับทั้ง table_name (จาก BillPage) และ table_no
     const { table_name, table_no, customer_name, items, total_price } = req.body;
-    
+
     // เลือกใช้ตัวแปรที่มีค่าส่งมา
     const finalTable = table_name || table_no;
-    
+
     const result = await orders.saveOrder(customer_name, finalTable, items, total_price);
     res.json(result);
 });
@@ -112,10 +147,10 @@ app.post("/api/login", async (req, res) => {
 
     if (rs.result) {
         // ปรับให้ดึงค่า id และ role ตามที่ Model authen.js ส่งมาจริง
-        const payload = { 
-            user_id: rs.data.id, 
+        const payload = {
+            user_id: rs.data.id,
             username: rs.data.username,
-            role: rs.data.role 
+            role: rs.data.role
         };
         const token = jwt.sign(payload, SECRET_KEY, { expiresIn: '3h' });
         res.json({
@@ -129,30 +164,59 @@ app.post("/api/login", async (req, res) => {
 });
 
 // --- API สำหรับการจองโต๊ะ (Bookings) ---
+
+// 1. API สร้างการจอง (เพิ่ม table_number)
 app.post("/api/bookings/create", async (req, res) => {
     try {
-        const { table_id, customer_name, booking_date, number_of_guests } = req.body;
+        const { table_id, table_number, customer_name, booking_date, number_of_guests } = req.body;
         const db = require('./db_pool');
-
-        // คำสั่ง SQL อิงตามหัวข้อในตาราง bookings
-        const sql = `INSERT INTO bookings (table_id, customer_name, booking_date, number_of_guests) 
-                     VALUES (?, ?, ?, ?)`;
-        
-        const [result] = await db.execute(sql, [
-            table_id || null, 
-            customer_name, 
-            booking_date, 
-            number_of_guests
-        ]);
-
+        // เพิ่ม table_number เข้าไปใน INSERT
+        const sql = `INSERT INTO bookings (table_id, table_number, customer_name, booking_date, number_of_guests) VALUES (?, ?, ?, ?, ?)`;
+        const [result] = await db.execute(sql, [table_id || null, table_number || null, customer_name, booking_date, number_of_guests]);
         res.json({ isError: false, message: "จองโต๊ะสำเร็จ!", bookingId: result.insertId });
     } catch (err) {
         res.json({ isError: true, errorMessage: err.message });
     }
 });
 
-// --- เพิ่ม Model สำหรับจัดการโต๊ะ (สร้างไฟล์ models/tables.js เพิ่มด้วย) ---
-const tables = require('./models/tables'); 
+// 2. API แก้ไขการจอง (เพิ่ม table_number)
+app.post("/api/bookings/update", async (req, res) => {
+    try {
+        const { booking_id, customer_name, booking_date, number_of_guests, table_id, table_number } = req.body;
+        const db = require('./db_pool');
+        // เพิ่ม table_number เข้าไปใน UPDATE
+        const sql = `UPDATE bookings SET customer_name=?, booking_date=?, number_of_guests=?, table_id=?, table_number=? WHERE booking_id=?`;
+        const [result] = await db.execute(sql, [customer_name, booking_date, number_of_guests, table_id || null, table_number || null, booking_id]);
+
+        if (result.affectedRows > 0) {
+            res.json({ isError: false, message: "อัปเดตการจองสำเร็จ" });
+        } else {
+            res.json({ isError: true, errorMessage: "ไม่พบข้อมูลการจองที่ต้องการแก้ไข" });
+        }
+    } catch (err) {
+        res.json({ isError: true, errorMessage: err.message });
+    }
+});
+
+// 3. API ดึงข้อมูลการจองทั้งหมด (ดึง b.table_number มาแสดง)
+app.get("/api/bookings/all_details", async (req, res) => {
+    try {
+        const db = require('./db_pool');
+        // แก้ไข SQL ให้ดึง table_number จากตาราง bookings (b.table_number) 
+        // โดยใช้ COALESCE เพื่อว่าถ้าใน bookings ไม่มี ให้ไปดึงจาก tables (t.table_number) แทน
+        const sql = `
+            SELECT b.*, 
+                   COALESCE(b.table_number, t.table_number) AS table_number
+            FROM bookings b
+            LEFT JOIN tables t ON b.table_id = t.table_id
+            ORDER BY b.booking_date DESC
+        `;
+        const [rows] = await db.execute(sql);
+        res.json({ isError: false, data: rows });
+    } catch (err) {
+        res.json({ isError: true, errorMessage: err.message });
+    }
+});
 
 // --- API สำหรับจัดการโต๊ะ (Tables) แบบ NO TOKEN ---
 

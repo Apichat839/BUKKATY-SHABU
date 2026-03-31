@@ -1,0 +1,107 @@
+.container {
+    background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), 
+                url('http://127.0.0.1:8080/imgs/bbg1.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed; /* ล็อครูปพื้นหลังไว้ไม่ให้ไถลตามการ scroll */
+    
+    padding: 2rem 1rem;
+    margin: 0;
+    height: 100vh; /* ให้สูงเต็มความสูงหน้าจอเสมอ */
+    width: 100%;       /* ให้กว้างเต็มจอ */
+    
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* จัดเนื้อหาให้อยู่กลางแนวนอน */
+}
+
+.title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: #ffffff; /* สีแดง */
+    border-bottom: 2px solid #f3f4f6;
+    padding-bottom: 0.5rem;
+}
+
+.tableSection {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    width:100% ;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.thead {
+    background-color: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.th {
+    font-weight: 600;
+    color: #374151;
+}
+
+.tr {
+    border-bottom: 1px solid #f3f4f6;
+    transition: background-color 0.2s;
+}
+
+.tr:hover {
+    background-color: #f9fafb;
+}
+
+.td , .th{
+    padding: 1rem;
+}
+
+.deleteBtn {
+    background-color: #ef4444;
+    color: white;
+    padding: 0.4rem 1rem;
+    border-radius: 0.25rem;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.deleteBtn:hover {
+    background-color: #dc2626;
+}
+
+.emptyRow {
+    padding: 2.5rem;
+    text-align: center;
+    color: #6b7280;
+    font-style: italic;
+}
+
+.backLink {
+    margin-top: 1.5rem;
+    background: none;
+    border: none;
+    color: #f8f8f8;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.95rem;
+    transition: color 0.2s;
+}
+
+.backLink:hover {
+    opacity: 1;
+    color: #ffd700;
+    text-decoration: underline;
+}
+
+.textCenter {
+    text-align: center;
+}

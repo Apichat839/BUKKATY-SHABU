@@ -25,9 +25,10 @@ const tables = {
     // 3. แก้ไขข้อมูลโต๊ะ
     updateTable: async (table_id, table_no, capacity, status) => {
         try {
+            // เช็คชื่อคอลัมน์ใน SET ให้ตรงกับ phpMyAdmin คือ table_status
             const sql = `UPDATE tables SET table_number = ?, seating_capacity = ?, table_status = ? WHERE table_id = ?`;
-            await db.execute(sql, [table_no, capacity, status, table_id]);
-            return { result: true, message: "แก้ไขข้อมูลสำเร็จ" };
+            const [result] = await db.execute(sql, [table_no, capacity, status, table_id]);
+            return { result: true };
         } catch (err) {
             return { result: false, message: err.message };
         }

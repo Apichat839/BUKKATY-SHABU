@@ -9,7 +9,7 @@
     
     padding: 2rem 1rem;
     margin: 0;
-    height: 100vh; /* ให้สูงเต็มความสูงหน้าจอเสมอ */
+    min-height: 100vh; /* ให้สูงเต็มความสูงหน้าจอเสมอ */
     width: 100%;       /* ให้กว้างเต็มจอ */
     
     display: flex;
