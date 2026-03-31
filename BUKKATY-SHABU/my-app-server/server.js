@@ -9,6 +9,7 @@ const path = require('path');
 const menu = require('./models/menu');
 const orders = require('./models/orders');
 const authen = require('./models/authen');
+const tables = require('./models/tables'); 
 
 const app = express();
 app.use(cors());
@@ -129,30 +130,59 @@ app.post("/api/login", async (req, res) => {
 });
 
 // --- API สำหรับการจองโต๊ะ (Bookings) ---
+
+// 1. API สร้างการจอง (เพิ่ม table_number)
 app.post("/api/bookings/create", async (req, res) => {
     try {
-        const { table_id, customer_name, booking_date, number_of_guests } = req.body;
+        const { table_id, table_number, customer_name, booking_date, number_of_guests } = req.body;
         const db = require('./db_pool');
-
-        // คำสั่ง SQL อิงตามหัวข้อในตาราง bookings
-        const sql = `INSERT INTO bookings (table_id, customer_name, booking_date, number_of_guests) 
-                     VALUES (?, ?, ?, ?)`;
-        
-        const [result] = await db.execute(sql, [
-            table_id || null, 
-            customer_name, 
-            booking_date, 
-            number_of_guests
-        ]);
-
+        // เพิ่ม table_number เข้าไปใน INSERT
+        const sql = `INSERT INTO bookings (table_id, table_number, customer_name, booking_date, number_of_guests) VALUES (?, ?, ?, ?, ?)`;
+        const [result] = await db.execute(sql, [table_id || null, table_number || null, customer_name, booking_date, number_of_guests]);
         res.json({ isError: false, message: "จองโต๊ะสำเร็จ!", bookingId: result.insertId });
     } catch (err) {
         res.json({ isError: true, errorMessage: err.message });
     }
 });
 
-// --- เพิ่ม Model สำหรับจัดการโต๊ะ (สร้างไฟล์ models/tables.js เพิ่มด้วย) ---
-const tables = require('./models/tables'); 
+// 2. API แก้ไขการจอง (เพิ่ม table_number)
+app.post("/api/bookings/update", async (req, res) => {
+    try {
+        const { booking_id, customer_name, booking_date, number_of_guests, table_id, table_number } = req.body;
+        const db = require('./db_pool');
+        // เพิ่ม table_number เข้าไปใน UPDATE
+        const sql = `UPDATE bookings SET customer_name=?, booking_date=?, number_of_guests=?, table_id=?, table_number=? WHERE booking_id=?`;
+        const [result] = await db.execute(sql, [customer_name, booking_date, number_of_guests, table_id || null, table_number || null, booking_id]);
+        
+        if (result.affectedRows > 0) {
+            res.json({ isError: false, message: "อัปเดตการจองสำเร็จ" });
+        } else {
+            res.json({ isError: true, errorMessage: "ไม่พบข้อมูลการจองที่ต้องการแก้ไข" });
+        }
+    } catch (err) {
+        res.json({ isError: true, errorMessage: err.message });
+    }
+});
+
+// 3. API ดึงข้อมูลการจองทั้งหมด (ดึง b.table_number มาแสดง)
+app.get("/api/bookings/all_details", async (req, res) => {
+    try {
+        const db = require('./db_pool');
+        // แก้ไข SQL ให้ดึง table_number จากตาราง bookings (b.table_number) 
+        // โดยใช้ COALESCE เพื่อว่าถ้าใน bookings ไม่มี ให้ไปดึงจาก tables (t.table_number) แทน
+        const sql = `
+            SELECT b.*, 
+                   COALESCE(b.table_number, t.table_number) AS table_number
+            FROM bookings b
+            LEFT JOIN tables t ON b.table_id = t.table_id
+            ORDER BY b.booking_date DESC
+        `;
+        const [rows] = await db.execute(sql);
+        res.json({ isError: false, data: rows });
+    } catch (err) {
+        res.json({ isError: true, errorMessage: err.message });
+    }
+}); 
 
 // --- API สำหรับจัดการโต๊ะ (Tables) แบบ NO TOKEN ---
 
