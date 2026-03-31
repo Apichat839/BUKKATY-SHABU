@@ -87,6 +87,29 @@ export default function MenuPage() {
         return acc;
     }, {});
 
+    // ฟังก์ชันเพิ่มจำนวน
+const handleIncrease = (id) => {
+    setCart(cart.map(item => 
+        item.id === id ? { ...item, qty: item.qty + 1 } : item
+    ));
+};
+
+// ฟังก์ชันลดจำนวน (ถ้าเหลือ 1 แล้วกดลดอีก จะเป็นการลบออก)
+const handleDecrease = (id, currentQty) => {
+    if (currentQty > 1) {
+        setCart(cart.map(item => 
+            item.id === id ? { ...item, qty: item.qty - 1 } : item
+        ));
+    } else {
+        handleRemove(id);
+    }
+};
+
+// ฟังก์ชันลบรายการ
+const handleRemove = (id) => {
+    setCart(cart.filter(item => item.id !== id));
+};
+
     return (
         /* โครงสร้างหน้าจอหลักตามที่คุณส่งมา (ห้ามแก้) */
         <div className="flex flex-col h-screen w-full bg-gray-50 overflow-hidden font-sans">
@@ -147,31 +170,67 @@ export default function MenuPage() {
                         <h2 className="font-bold text-lg">รายการที่เลือก ({cart.reduce((s,i)=>s+i.qty,0)})</h2>
                     </div>
                     
-                    {/* รายการอาหารในตะกร้า */}
-                    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50">
-                        {cart.length === 0 ? (
-                            <div className="h-full flex flex-col items-center justify-center text-gray-400">
-                                <p>ยังไม่ได้เลือกเมนู</p>
-                            </div>
-                        ) : (
-                            cart.map(item => (
-                                <div key={item.id} className="flex gap-3 bg-white p-3 rounded-xl border border-gray-100 shadow-sm items-center">
-                                    <div className="w-14 h-14 rounded-lg bg-gray-200 overflow-hidden shrink-0">
-                                        <img 
-                                            src={`${API_BASE_URL}/imgs/${item.img}`} 
-                                            className="w-full h-full object-cover" 
-                                            onError={(e)=>{e.target.src="https://via.placeholder.com/150";}} 
-                                        />
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="text-sm font-bold line-clamp-1">{item.name}</p>
-                                        <p className="text-red-600 text-xs font-bold mt-1">{(item.price * item.qty).toLocaleString()} ฿</p>
-                                    </div>
-                                    <div className="text-xs font-bold text-gray-400">x{item.qty}</div>
-                                </div>
-                            ))
-                        )}
+{/* รายการอาหารในตะกร้า */}
+<div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50">
+    {cart.length === 0 ? (
+        <div className="h-full flex flex-col items-center justify-center text-gray-400">
+            <p>ยังไม่ได้เลือกเมนู</p>
+        </div>
+    ) : (
+        cart.map(item => (
+            <div key={item.id} className="flex gap-3 bg-white p-3 rounded-xl border border-gray-100 shadow-sm items-center">
+                {/* รูปภาพ */}
+                <div className="w-14 h-14 rounded-lg bg-gray-200 overflow-hidden shrink-0">
+                    <img 
+                        src={`${API_BASE_URL}/imgs/${item.img}`} 
+                        className="w-full h-full object-cover" 
+                        onError={(e) => { e.target.src = "https://via.placeholder.com/150"; }} 
+                        alt={item.name}
+                    />
+                </div>
+                
+                {/* ชื่อและราคา */}
+                <div className="flex-1">
+                    <p className="text-sm font-bold line-clamp-1">{item.name}</p>
+                    <p className="text-red-600 text-xs font-bold mt-1">{(item.price * item.qty).toLocaleString()} ฿</p>
+                </div>
+                
+                {/* ปุ่มจัดการจำนวน และ ลบ */}
+                <div className="flex flex-col items-end gap-2 shrink-0">
+                    {/* ปุ่มลบรายการ */}
+                    <button 
+                        onClick={() => handleRemove(item.id)}
+                        className="text-gray-400 hover:text-red-500 transition-colors"
+                        title="ลบรายการ"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </button>
+
+                    {/* ปุ่ม เพิ่ม/ลด จำนวน */}
+                    <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg p-1">
+                        <button 
+                            onClick={() => handleDecrease(item.id, item.qty)}
+                            className="w-6 h-6 flex items-center justify-center rounded-md bg-white text-gray-600 shadow-sm hover:bg-gray-100 active:bg-gray-200 transition-colors"
+                        >
+                            -
+                        </button>
+                        <span className="text-xs font-bold text-gray-700 w-4 text-center">
+                            {item.qty}
+                        </span>
+                        <button 
+                            onClick={() => handleIncrease(item.id)}
+                            className="w-6 h-6 flex items-center justify-center rounded-md bg-white text-gray-600 shadow-sm hover:bg-gray-100 active:bg-gray-200 transition-colors"
+                        >
+                            +
+                        </button>
                     </div>
+                </div>
+            </div>
+        ))
+    )}
+</div>
 
                     {/* สรุปราคารวมและปุ่มสั่ง */}
                     <div className="p-5 border-t border-gray-100 bg-white shrink-0 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
