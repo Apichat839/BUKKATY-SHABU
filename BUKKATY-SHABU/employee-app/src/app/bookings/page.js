@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Form, Button, Card, Table, Modal, Badge } from 'react-bootstrap';
+// นำเข้าไฟล์ CSS ที่แยกออกมา
+import './bookingspage.module.css'; 
 
 export default function BookingPage() {
     const [formData, setFormData] = useState({
@@ -10,10 +12,11 @@ export default function BookingPage() {
         booking_date: '',
         number_of_guests: 1,
         table_id: '',
-        table_number: '' // เพิ่ม field สำหรับเลขโต๊ะ
+        table_number: ''
     });
     const [bookings, setBookings] = useState([]);
     const [showModal, setShowModal] = useState(false);
+    const [showMonthlyModal, setShowMonthlyModal] = useState(false);
 
     const fetchBookings = async () => {
         try {
@@ -34,18 +37,16 @@ export default function BookingPage() {
             booking_date: '', 
             number_of_guests: 1, 
             table_id: '',
-            table_number: '' // รีเซ็ตค่าเลขโต๊ะ
+            table_number: '' 
         });
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
-        // ตรวจสอบค่าว่างของ table_id และ table_number
         const dataToSend = {
             ...formData,
             table_id: formData.table_id || null,
-            table_number: formData.table_number || null // ส่งค่าเลขโต๊ะไปยัง Backend
+            table_number: formData.table_number || null 
         };
 
         const url = formData.booking_id 
@@ -70,7 +71,24 @@ export default function BookingPage() {
             }
         } catch (error) {
             console.error("Submit Error:", error);
-            alert("⚠️ เซิร์ฟเวอร์ขัดข้อง (โปรดตรวจสอบว่า Restart Backend หรือยัง)");
+            alert("⚠️ เซิร์ฟเวอร์ขัดข้อง");
+        }
+    };
+
+    const handleDelete = async (id) => {
+        if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบการจองนี้?")) return;
+        try {
+            const response = await fetch(`http://localhost:8080/api/bookings/delete/${id}`, {
+                method: 'DELETE'
+            });
+            const res = await response.json();
+            if (!res.isError) {
+                alert("🗑️ ลบการจองสำเร็จ!");
+                fetchBookings();
+                if (formData.booking_id === id) resetForm();
+            }
+        } catch (error) {
+            console.error("Delete Error:", error);
         }
     };
 
@@ -81,21 +99,40 @@ export default function BookingPage() {
             formattedDate = new Date(d.getTime() - (d.getTimezoneOffset() * 60000))
                             .toISOString().slice(0, 16);
         }
-
         setFormData({
             booking_id: item.booking_id,
             customer_name: item.customer_name,
             booking_date: formattedDate,
             number_of_guests: item.number_of_guests,
             table_id: item.table_id || '',
-            table_number: item.table_number || '' // ดึงค่าเลขโต๊ะจากตารางมาใส่ในฟอร์มแก้ไข
+            table_number: item.table_number || ''
         });
         setShowModal(false);
     };
 
+    const monthlySummary = bookings.reduce((acc, b) => {
+        if (!b.booking_date) return acc;
+        const d = new Date(b.booking_date);
+        const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        if (!acc[monthKey]) {
+            acc[monthKey] = {
+                monthKey,
+                year: d.getFullYear(),
+                month: String(d.getMonth() + 1).padStart(2, '0'),
+                totalBookings: 0,
+                totalGuests: 0
+            };
+        }
+        acc[monthKey].totalBookings += 1;
+        acc[monthKey].totalGuests += Number(b.number_of_guests || 0);
+        return acc;
+    }, {});
+
+    const monthlySummaryList = Object.values(monthlySummary).sort((a, b) => b.monthKey.localeCompare(a.monthKey));
+
     return (
-        <Container className="mt-5 d-flex flex-column align-items-center">
-            <Card style={{ width: '450px' }} className="shadow border-warning mb-4">
+        <Container className="booking-container">
+            <Card className="booking-card shadow border-warning">
                 <Card.Body>
                     <Card.Title className="text-warning text-center mb-4">
                         {formData.booking_id ? '📝 แก้ไขการจอง' : '📅 จองโต๊ะ Bukkaty Shabu'}
@@ -104,8 +141,7 @@ export default function BookingPage() {
                         <Form.Group className="mb-3">
                             <Form.Label>ชื่อผู้จอง</Form.Label>
                             <Form.Control 
-                                type="text" 
-                                required 
+                                type="text" required 
                                 value={formData.customer_name} 
                                 onChange={(e) => setFormData({...formData, customer_name: e.target.value})} 
                             />
@@ -113,30 +149,23 @@ export default function BookingPage() {
                         <Form.Group className="mb-3">
                             <Form.Label>วันที่และเวลา</Form.Label>
                             <Form.Control 
-                                type="datetime-local" 
-                                required 
+                                type="datetime-local" required 
                                 value={formData.booking_date} 
                                 onChange={(e) => setFormData({...formData, booking_date: e.target.value})} 
                             />
                         </Form.Group>
-                        
                         <Form.Group className="mb-3">
                             <Form.Label>เลขโต๊ะ (ถ้าทราบ)</Form.Label>
                             <Form.Control 
-                                type="number"
-                                min="1" 
-                                placeholder="เช่น 1, 2, 3"
+                                type="number" min="1" placeholder="เช่น 1, 2, 3"
                                 value={formData.table_number} 
                                 onChange={(e) => setFormData({...formData, table_number: e.target.value})} 
                             />
                         </Form.Group>
-
                         <Form.Group className="mb-3">
                             <Form.Label>จำนวนแขก</Form.Label>
                             <Form.Control 
-                                type="number" 
-                                min="1" 
-                                required 
+                                type="number" min="1" required 
                                 value={formData.number_of_guests} 
                                 onChange={(e) => setFormData({...formData, number_of_guests: e.target.value})} 
                             />
@@ -145,19 +174,21 @@ export default function BookingPage() {
                             <Button variant={formData.booking_id ? "info" : "warning"} type="submit" className="fw-bold">
                                 {formData.booking_id ? 'บันทึกการแก้ไข' : 'ยืนยันการจอง'}
                             </Button>
-                            
                             {formData.booking_id && (
                                 <Button variant="secondary" onClick={resetForm}>ยกเลิกการแก้ไข</Button>
                             )}
-
                             <Button variant="outline-secondary" onClick={() => setShowModal(true)}>
                                 🔍 ดูรายการทั้งหมด / แก้ไข
+                            </Button>
+                            <Button variant="outline-info" onClick={() => setShowMonthlyModal(true)}>
+                                📊 สรุปยอดการจองรายเดือน
                             </Button>
                         </div>
                     </Form>
                 </Card.Body>
             </Card>
 
+            {/* Modal รายการทั้งหมด */}
             <Modal show={showModal} onHide={() => setShowModal(false)} size="lg" centered>
                 <Modal.Header closeButton className="bg-warning">
                     <Modal.Title>รายการจองทั้งหมด</Modal.Title>
@@ -180,9 +211,8 @@ export default function BookingPage() {
                                     <td>{new Date(item.booking_date).toLocaleString('th-TH')}</td>
                                     <td>{item.number_of_guests} ท่าน</td>
                                     <td>
-                                        {/* แก้จุดนี้: ตรวจสอบค่า table_number จาก Database โดยตรง */}
                                         {item.table_number ? (
-                                            <Badge bg="success" style={{ fontSize: '0.9rem' }}>
+                                            <Badge bg="success" className="table-badge">
                                                 โต๊ะ {item.table_number}
                                             </Badge>
                                         ) : (
@@ -190,14 +220,40 @@ export default function BookingPage() {
                                         )}
                                     </td>
                                     <td>
-                                        <Button size="sm" variant="primary" onClick={() => handleEdit(item)}>
-                                            เลือกแก้ไข
-                                        </Button>
+                                        <Button size="sm" variant="primary" onClick={() => handleEdit(item)} className="me-2 mb-1">แก้ไข</Button>
+                                        <Button size="sm" variant="danger" onClick={() => handleDelete(item.booking_id)} className="mb-1">ลบ</Button>
                                     </td>
                                 </tr>
                             )) : (
                                 <tr><td colSpan="5" className="text-center">ไม่พบข้อมูลการจอง</td></tr>
                             )}
+                        </tbody>
+                    </Table>
+                </Modal.Body>
+            </Modal>
+
+            {/* Modal รายเดือน */}
+            <Modal show={showMonthlyModal} onHide={() => setShowMonthlyModal(false)} size="md" centered>
+                <Modal.Header closeButton className="bg-info text-white">
+                    <Modal.Title><h5 className="mb-0">📊 ยอดการจองรายเดือน</h5></Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Table striped bordered hover responsive className="text-center">
+                        <thead className="table-info">
+                            <tr>
+                                <th>เดือน/ปี</th>
+                                <th>จำนวนครั้งที่จอง</th>
+                                <th>จำนวนแขก (ท่าน)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {monthlySummaryList.map(item => (
+                                <tr key={item.monthKey}>
+                                    <td>{`${item.month}/${item.year}`}</td>
+                                    <td>{item.totalBookings}</td>
+                                    <td>{item.totalGuests}</td>
+                                </tr>
+                            ))}
                         </tbody>
                     </Table>
                 </Modal.Body>
