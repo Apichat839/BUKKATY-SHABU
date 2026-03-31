@@ -1,80 +1,207 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Container, Form, Button, Card } from 'react-bootstrap';
+import { Container, Form, Button, Card, Table, Modal, Badge } from 'react-bootstrap';
 
 export default function BookingPage() {
     const [formData, setFormData] = useState({
+        booking_id: null,
         customer_name: '',
         booking_date: '',
         number_of_guests: 1,
-        table_id: '' // ใส่เป็น ID ของโต๊ะ (ถ้ามีระบบเลือกโต๊ะ)
+        table_id: '',
+        table_number: '' // เพิ่ม field สำหรับเลขโต๊ะ
     });
+    const [bookings, setBookings] = useState([]);
+    const [showModal, setShowModal] = useState(false);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const fetchBookings = async () => {
         try {
-            const response = await fetch('http://localhost:8080/api/bookings/create', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
-            });
+            const response = await fetch('http://localhost:8080/api/bookings/all_details');
             const res = await response.json();
-            
-            if (!res.isError) {
-                alert("การจองของคุณสำเร็จแล้ว!");
-                setFormData({ customer_name: '', booking_date: '', number_of_guests: 1, table_id: '' });
-            } else {
-                alert("เกิดข้อผิดพลาด: " + res.errorMessage);
-            }
-        } catch (error) {
-            console.error("Booking error:", error);
+            if (!res.isError) setBookings(res.data);
+        } catch (error) { 
+            console.error("Fetch Error:", error); 
         }
     };
 
+    useEffect(() => { fetchBookings(); }, []);
+
+    const resetForm = () => {
+        setFormData({ 
+            booking_id: null, 
+            customer_name: '', 
+            booking_date: '', 
+            number_of_guests: 1, 
+            table_id: '',
+            table_number: '' // รีเซ็ตค่าเลขโต๊ะ
+        });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        
+        // ตรวจสอบค่าว่างของ table_id และ table_number
+        const dataToSend = {
+            ...formData,
+            table_id: formData.table_id || null,
+            table_number: formData.table_number || null // ส่งค่าเลขโต๊ะไปยัง Backend
+        };
+
+        const url = formData.booking_id 
+            ? `http://localhost:8080/api/bookings/update` 
+            : `http://localhost:8080/api/bookings/create`;
+            
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dataToSend)
+            });
+
+            const res = await response.json();
+            if (!res.isError) {
+                alert(formData.booking_id ? "✅ แก้ไขข้อมูลการจองสำเร็จ!" : "🎉 จองโต๊ะสำเร็จ!");
+                resetForm();
+                fetchBookings();
+                setShowModal(false);
+            } else {
+                alert("❌ เกิดข้อผิดพลาด: " + res.errorMessage);
+            }
+        } catch (error) {
+            console.error("Submit Error:", error);
+            alert("⚠️ เซิร์ฟเวอร์ขัดข้อง (โปรดตรวจสอบว่า Restart Backend หรือยัง)");
+        }
+    };
+
+    const handleEdit = (item) => {
+        let formattedDate = "";
+        if (item.booking_date) {
+            const d = new Date(item.booking_date);
+            formattedDate = new Date(d.getTime() - (d.getTimezoneOffset() * 60000))
+                            .toISOString().slice(0, 16);
+        }
+
+        setFormData({
+            booking_id: item.booking_id,
+            customer_name: item.customer_name,
+            booking_date: formattedDate,
+            number_of_guests: item.number_of_guests,
+            table_id: item.table_id || '',
+            table_number: item.table_number || '' // ดึงค่าเลขโต๊ะจากตารางมาใส่ในฟอร์มแก้ไข
+        });
+        setShowModal(false);
+    };
+
     return (
-        <Container className="mt-5 d-flex justify-content-center">
-            <Card style={{ width: '400px' }} className="shadow border-warning">
+        <Container className="mt-5 d-flex flex-column align-items-center">
+            <Card style={{ width: '450px' }} className="shadow border-warning mb-4">
                 <Card.Body>
-                    <Card.Title className="text-warning text-center mb-4">จองโต๊ะ Bukkaty Shabu</Card.Title>
+                    <Card.Title className="text-warning text-center mb-4">
+                        {formData.booking_id ? '📝 แก้ไขการจอง' : '📅 จองโต๊ะ Bukkaty Shabu'}
+                    </Card.Title>
                     <Form onSubmit={handleSubmit}>
                         <Form.Group className="mb-3">
                             <Form.Label>ชื่อผู้จอง</Form.Label>
                             <Form.Control 
                                 type="text" 
                                 required 
-                                value={formData.customer_name}
-                                onChange={(e) => setFormData({...formData, customer_name: e.target.value})}
+                                value={formData.customer_name} 
+                                onChange={(e) => setFormData({...formData, customer_name: e.target.value})} 
                             />
                         </Form.Group>
-
                         <Form.Group className="mb-3">
                             <Form.Label>วันที่และเวลา</Form.Label>
                             <Form.Control 
                                 type="datetime-local" 
                                 required 
-                                value={formData.booking_date}
-                                onChange={(e) => setFormData({...formData, booking_date: e.target.value})}
+                                value={formData.booking_date} 
+                                onChange={(e) => setFormData({...formData, booking_date: e.target.value})} 
+                            />
+                        </Form.Group>
+                        
+                        <Form.Group className="mb-3">
+                            <Form.Label>เลขโต๊ะ (ถ้าทราบ)</Form.Label>
+                            <Form.Control 
+                                type="number"
+                                min="1" 
+                                placeholder="เช่น 1, 2, 3"
+                                value={formData.table_number} 
+                                onChange={(e) => setFormData({...formData, table_number: e.target.value})} 
                             />
                         </Form.Group>
 
                         <Form.Group className="mb-3">
-                            <Form.Label>จำนวนแขก (ท่าน)</Form.Label>
+                            <Form.Label>จำนวนแขก</Form.Label>
                             <Form.Control 
                                 type="number" 
                                 min="1" 
                                 required 
-                                value={formData.number_of_guests}
-                                onChange={(e) => setFormData({...formData, number_of_guests: e.target.value})}
+                                value={formData.number_of_guests} 
+                                onChange={(e) => setFormData({...formData, number_of_guests: e.target.value})} 
                             />
                         </Form.Group>
+                        <div className="d-grid gap-2">
+                            <Button variant={formData.booking_id ? "info" : "warning"} type="submit" className="fw-bold">
+                                {formData.booking_id ? 'บันทึกการแก้ไข' : 'ยืนยันการจอง'}
+                            </Button>
+                            
+                            {formData.booking_id && (
+                                <Button variant="secondary" onClick={resetForm}>ยกเลิกการแก้ไข</Button>
+                            )}
 
-                        <Button variant="warning" type="submit" className="w-full font-bold">
-                            ยืนยันการจอง
-                        </Button>
+                            <Button variant="outline-secondary" onClick={() => setShowModal(true)}>
+                                🔍 ดูรายการทั้งหมด / แก้ไข
+                            </Button>
+                        </div>
                     </Form>
                 </Card.Body>
             </Card>
+
+            <Modal show={showModal} onHide={() => setShowModal(false)} size="lg" centered>
+                <Modal.Header closeButton className="bg-warning">
+                    <Modal.Title>รายการจองทั้งหมด</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Table striped bordered hover responsive>
+                        <thead className="table-light">
+                            <tr>
+                                <th>ชื่อผู้จอง</th>
+                                <th>วันที่ - เวลา</th>
+                                <th>จำนวนแขก</th>
+                                <th>เลขโต๊ะ</th>
+                                <th>จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {bookings.length > 0 ? bookings.map(item => (
+                                <tr key={item.booking_id}>
+                                    <td>{item.customer_name}</td>
+                                    <td>{new Date(item.booking_date).toLocaleString('th-TH')}</td>
+                                    <td>{item.number_of_guests} ท่าน</td>
+                                    <td>
+                                        {/* แก้จุดนี้: ตรวจสอบค่า table_number จาก Database โดยตรง */}
+                                        {item.table_number ? (
+                                            <Badge bg="success" style={{ fontSize: '0.9rem' }}>
+                                                โต๊ะ {item.table_number}
+                                            </Badge>
+                                        ) : (
+                                            <Badge bg="secondary">ยังไม่ระบุ</Badge>
+                                        )}
+                                    </td>
+                                    <td>
+                                        <Button size="sm" variant="primary" onClick={() => handleEdit(item)}>
+                                            เลือกแก้ไข
+                                        </Button>
+                                    </td>
+                                </tr>
+                            )) : (
+                                <tr><td colSpan="5" className="text-center">ไม่พบข้อมูลการจอง</td></tr>
+                            )}
+                        </tbody>
+                    </Table>
+                </Modal.Body>
+            </Modal>
         </Container>
     );
 }
