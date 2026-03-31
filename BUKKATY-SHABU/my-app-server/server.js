@@ -1,7 +1,7 @@
 const express = require('express');
 const bp = require('body-parser');
 const cors = require("cors");
-const jwt = require('jsonwebtoken'); 
+const jwt = require('jsonwebtoken');
 const multer = require("multer");
 const path = require('path');
 
@@ -9,7 +9,7 @@ const path = require('path');
 const menu = require('./models/menu');
 const orders = require('./models/orders');
 const authen = require('./models/authen');
-const tables = require('./models/tables'); 
+const tables = require('./models/tables');
 
 const app = express();
 app.use(cors());
@@ -47,7 +47,7 @@ app.use('/imgs', express.static(path.join(__dirname, 'upload/img')));
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, "upload/img");
+        cb(null, path.join(__dirname, "upload/img"));
     },
     filename: (req, file, cb) => {
         const fileName = Date.now() + "_" + file.originalname;
@@ -73,24 +73,58 @@ app.get("/api/food_types/all", async (req, res) => {
     }
 });
 
-app.post("/api/menu/add", checkAccessToken, upload.single('file'), async (req, res) => {
-    const result = await menu.addMenu(
-        req.body.menu_name,
-        req.body.price,
-        req.body.food_type_id,
-        req.file ? req.file.filename : null
-    );
-    res.json(result);
+app.post("/api/menu/add", upload.single('file'), async (req, res) => {
+    try {
+        const result = await menu.addMenu(
+            req.body.menu_name,
+            req.body.price,
+            req.body.food_type_id,
+            req.file ? req.file.filename : null
+        );
+        res.json(result);
+    } catch (err) {
+        console.error("Backend Error:", err);
+        res.status(500).json({ isError: true, message: err.message });
+    }
+});
+
+// แก้ไขเมนู (update)
+app.put("/api/menu/update/:id", upload.single('file'), async (req, res) => {
+    try {
+        const menuId = req.params.id;
+        const result = await menu.updateMenu(
+            menuId,
+            req.body.menu_name,
+            req.body.price,
+            req.body.food_type_id
+        );
+        if (req.file) {
+            await menu.updateMenuImage(menuId, req.file.filename);
+        }
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ isError: true, message: err.message });
+    }
+});
+
+// ลบเมนู (delete)
+app.delete("/api/menu/delete/:id", async (req, res) => {
+    try {
+        const result = await menu.deleteMenu(req.params.id);
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ isError: true, message: err.message });
+    }
 });
 
 // --- API สำหรับออเดอร์ (Orders) ---
 app.post("/api/orders/create", async (req, res) => {
     // ปรับชื่อตัวแปรให้รองรับทั้ง table_name (จาก BillPage) และ table_no
     const { table_name, table_no, customer_name, items, total_price } = req.body;
-    
+
     // เลือกใช้ตัวแปรที่มีค่าส่งมา
     const finalTable = table_name || table_no;
-    
+
     const result = await orders.saveOrder(customer_name, finalTable, items, total_price);
     res.json(result);
 });
@@ -113,10 +147,10 @@ app.post("/api/login", async (req, res) => {
 
     if (rs.result) {
         // ปรับให้ดึงค่า id และ role ตามที่ Model authen.js ส่งมาจริง
-        const payload = { 
-            user_id: rs.data.id, 
+        const payload = {
+            user_id: rs.data.id,
             username: rs.data.username,
-            role: rs.data.role 
+            role: rs.data.role
         };
         const token = jwt.sign(payload, SECRET_KEY, { expiresIn: '3h' });
         res.json({
@@ -153,7 +187,7 @@ app.post("/api/bookings/update", async (req, res) => {
         // เพิ่ม table_number เข้าไปใน UPDATE
         const sql = `UPDATE bookings SET customer_name=?, booking_date=?, number_of_guests=?, table_id=?, table_number=? WHERE booking_id=?`;
         const [result] = await db.execute(sql, [customer_name, booking_date, number_of_guests, table_id || null, table_number || null, booking_id]);
-        
+
         if (result.affectedRows > 0) {
             res.json({ isError: false, message: "อัปเดตการจองสำเร็จ" });
         } else {
@@ -182,7 +216,7 @@ app.get("/api/bookings/all_details", async (req, res) => {
     } catch (err) {
         res.json({ isError: true, errorMessage: err.message });
     }
-}); 
+});
 
 // --- API สำหรับจัดการโต๊ะ (Tables) แบบ NO TOKEN ---
 
