@@ -198,6 +198,23 @@ app.post("/api/bookings/update", async (req, res) => {
     }
 });
 
+// 3. API ลบการจอง
+app.delete("/api/bookings/delete/:id", async (req, res) => {
+    try {
+        const db = require('./db_pool');
+        const sql = `DELETE FROM bookings WHERE booking_id = ?`;
+        const [result] = await db.execute(sql, [req.params.id]);
+        
+        if (result.affectedRows > 0) {
+            res.json({ isError: false, message: "ลบการจองสำเร็จ" });
+        } else {
+            res.json({ isError: true, errorMessage: "ไม่พบข้อมูลการจองที่ต้องการลบ" });
+        }
+    } catch (err) {
+        res.json({ isError: true, errorMessage: err.message });
+    }
+});
+
 // 3. API ดึงข้อมูลการจองทั้งหมด (ดึง b.table_number มาแสดง)
 app.get("/api/bookings/all_details", async (req, res) => {
     try {
