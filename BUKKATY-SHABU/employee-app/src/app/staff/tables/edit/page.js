@@ -112,7 +112,7 @@ export default function EditTablePage() {
                                 >
                                     <option value="" disabled>-- กรุณาเลือกสถานะ --</option>
                                     <option value="Available">โต๊ะว่าง</option>
-                                    <option value="Occupied">โต๊ะไม่ว่าง</option>
+                                    <option value="Busy">โต๊ะไม่ว่าง</option>
                                 </select>
                             </div>
                             <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
