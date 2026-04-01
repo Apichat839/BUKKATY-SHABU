@@ -15,8 +15,6 @@ const menuActions = [
             </svg>
         ),
         color: 'text-emerald-600',
-        bg: 'bg-emerald-50 border-emerald-200',
-        hover: 'hover:border-emerald-400 hover:shadow-emerald-100',
     },
     {
         title: 'แก้ไขเมนู',
@@ -28,8 +26,6 @@ const menuActions = [
             </svg>
         ),
         color: 'text-amber-600',
-        bg: 'bg-amber-50 border-amber-200',
-        hover: 'hover:border-amber-400 hover:shadow-amber-100',
     },
     {
         title: 'ลบเมนู',
@@ -41,8 +37,6 @@ const menuActions = [
             </svg>
         ),
         color: 'text-red-600',
-        bg: 'bg-red-50 border-red-200',
-        hover: 'hover:border-red-400 hover:shadow-red-100',
     },
 ];
 
@@ -62,10 +56,10 @@ export default function MenuManagementPage() {
                         <Card
                             key={item.path}
                             onClick={() => router.push(item.path)}
-                            className={`cursor-pointer border-2 transition-all shadow-sm hover:shadow-md active:scale-[0.98] ${item.bg} ${item.hover}`}
+                            className="cursor-pointer border border-border bg-white transition-all shadow-sm hover:shadow-md hover:border-gray-300 active:scale-[0.98]"
                         >
                             <CardContent className="p-6">
-                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 bg-white shadow-sm ${item.color}`}>
+                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 bg-gray-50 border border-border ${item.color}`}>
                                     {item.icon}
                                 </div>
                                 <h3 className="text-base font-bold text-foreground mb-1">{item.title}</h3>
