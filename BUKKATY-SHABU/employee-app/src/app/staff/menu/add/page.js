@@ -123,7 +123,7 @@ export default function AddMenuPage() {
                                     value={menuName}
                                     onChange={(e) => setMenuName(e.target.value)}
                                     required
-                                    placeholder="เช่น กุ้งสดแม่น้ำ"
+                                    placeholder="เช่น กุ้งแม่น้ำสด"
                                 />
                             </div>
 
