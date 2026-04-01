@@ -34,6 +34,15 @@ const navItems = [
             </svg>
         ),
     },
+    {
+        label: 'สรุปยอดการจอง',
+        path: '/staff/summary',
+        icon: (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+        ),
+    },
 ];
 
 export default function StaffNavbar() {
@@ -43,7 +52,7 @@ export default function StaffNavbar() {
     // เช็คว่าเป็นหน้าในหมวดหมู่จัดการโต๊ะหรือไม่ เพื่อเปลี่ยนธีมเป็นสีดำกรอบทอง
     const isTablePage = pathname.startsWith('/staff/tables');
 
-    const headerStyles = isTablePage 
+    const headerStyles = isTablePage
         ? "sticky top-0 z-50 bg-[#1a1a1a] border-b-2 border-[#ffd700] shadow-lg" // ธีมดำ-ทอง สำหรับหน้าโต๊ะ
         : "sticky top-0 z-50 bg-white border-b border-border shadow-sm";        // ธีมปกติ
 
@@ -81,7 +90,7 @@ export default function StaffNavbar() {
                             item.path === '/staff'
                                 ? pathname === '/staff'
                                 : pathname.startsWith(item.path);
-                        
+
                         return (
                             <Button
                                 key={item.path}
