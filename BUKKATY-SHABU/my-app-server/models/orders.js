@@ -20,9 +20,9 @@ const orders = {
             const sql = `INSERT INTO orders (customer_name, table_name, items_json, total_price, status) 
                          VALUES (?, ?, ?, ?, 'pending')`;
             const [result] = await db.execute(sql, [
-                customerName, 
-                tableName, 
-                JSON.stringify(items), 
+                customerName,
+                tableName,
+                JSON.stringify(items),
                 total
             ]);
             return { isError: false, result: true, orderId: result.insertId };

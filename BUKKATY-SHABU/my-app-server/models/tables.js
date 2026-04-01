@@ -1,4 +1,4 @@
-const db = require('../db_pool'); 
+const db = require('../db_pool');
 
 const tables = {
     // 1. ดึงข้อมูลโต๊ะทั้งหมด

@@ -1,8 +1,9 @@
 .container {
-    background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), 
+    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), 
                 url('http://127.0.0.1:8080/imgs/bbg1.jpg');
     background-size: cover;
     background-position: center;
+    background-repeat: no-repeat;
     background-attachment: fixed;
     width: 100%;
     min-height: 100vh;
@@ -68,7 +69,7 @@
 
 .tableNo {
     font-weight: 700;
-    color: #2563eb; /* สีน้ำเงิน */
+    color: #2563eb;
 }
 
 .price {
