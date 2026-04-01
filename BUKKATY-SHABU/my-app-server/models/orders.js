@@ -43,11 +43,22 @@ const orders = {
         }
     },
 
-    // 4. ลบออเดอร์ (เพิ่มเข้ามาใหม่เพื่อให้คัดลอกไปใช้ง่ายๆ)
+    // 4. ลบออเดอร์
     deleteOrder: async (orderId) => {
         try {
             const sql = `DELETE FROM orders WHERE order_id = ?`;
             await db.execute(sql, [orderId]);
+            return { isError: false, result: true };
+        } catch (err) {
+            return { isError: true, errorMessage: err.message };
+        }
+    },
+
+    // 5. เคลียร์ออเดอร์ทั้งโต๊ะ (ชำระเงินแล้ว)
+    clearTable: async (tableName) => {
+        try {
+            const sql = `DELETE FROM orders WHERE table_name = ?`;
+            await db.execute(sql, [tableName]);
             return { isError: false, result: true };
         } catch (err) {
             return { isError: true, errorMessage: err.message };

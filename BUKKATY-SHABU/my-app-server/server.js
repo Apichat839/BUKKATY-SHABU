@@ -130,7 +130,12 @@ app.get("/api/orders/all", async (req, res) => {
     res.json(response);
 });
 
-app.post("/api/orders/update_status", checkAccessToken, async (req, res) => {
+app.post("/api/orders/clear_table", async (req, res) => {
+    const result = await orders.clearTable(req.body.table_name);
+    res.json(result);
+});
+
+app.post("/api/orders/update_status", async (req, res) => {
     const result = await orders.updateStatus(req.body.order_id, req.body.status);
     res.json(result);
 });
@@ -198,6 +203,22 @@ app.get("/api/bookings/all_details", async (req, res) => {
         `;
         const [rows] = await db.execute(sql);
         res.json({ isError: false, data: rows });
+    } catch (err) {
+        res.json({ isError: true, errorMessage: err.message });
+    }
+});
+
+app.delete("/api/bookings/delete/:id", async (req, res) => {
+    try {
+        const db = require('./db_pool');
+        const sql = `DELETE FROM bookings WHERE booking_id = ?`;
+        const [result] = await db.execute(sql, [req.params.id]);
+        
+        if (result.affectedRows > 0) {
+            res.json({ isError: false, message: "ลบการจองสำเร็จ" });
+        } else {
+            res.json({ isError: true, errorMessage: "ไม่พบข้อมูลการจองที่ต้องการลบ" });
+        }
     } catch (err) {
         res.json({ isError: true, errorMessage: err.message });
     }
