@@ -34,7 +34,7 @@ export default function EditTablePage() {
         setTableNo(table.table_number);
         setCapacity(table.seating_capacity);
         // ถ้าค่าใน DB เป็นค่าว่าง หรือ null ให้ตั้งเป็น available ทันทีในฟอร์ม
-        setStatus(""); 
+        setStatus(table.table_status || "Available"); 
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
@@ -48,7 +48,7 @@ export default function EditTablePage() {
 
         try {
             const response = await fetch('http://127.0.0.1:8080/api/tables/update', {
-                method: 'PUT',
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     table_id: editingTable.table_id,
@@ -111,8 +111,8 @@ export default function EditTablePage() {
                                     className={styles.select}
                                 >
                                     <option value="" disabled>-- กรุณาเลือกสถานะ --</option>
-                                    <option value="available">โต๊ะว่าง</option>
-                                    <option value="occupied">โต๊ะไม่ว่าง</option>
+                                    <option value="Available">โต๊ะว่าง</option>
+                                    <option value="Occupied">โต๊ะไม่ว่าง</option>
                                 </select>
                             </div>
                             <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
@@ -142,14 +142,14 @@ export default function EditTablePage() {
                         <tbody>
                             {tables.map((t) => {
                                 // เช็คว่าถ้าเป็น 'available' หรือเป็นค่าว่าง/null ให้ถือว่าเป็น "โต๊ะว่าง"
-                                const isAvailable = !t.table_status || t.table_status === 'available';
+                                const isAvailable = !t.table_status || t.table_status.toLowerCase() === 'available';
                                 return (
                                     <tr key={t.table_id} className={styles.tr}>
                                         <td className={styles.td}><b>โต๊ะ {t.table_number}</b></td>
                                         <td className={styles.td}>{t.seating_capacity} ที่นั่ง</td>
                                         <td className={styles.td}>
                                             <span className={`${styles.badge} ${isAvailable ? styles.available : styles.occupied}`}>
-                                                {isAvailable ? 'โต๊ะไม่ว่าง' : 'โต๊ะว่าง'}
+                                                {isAvailable ? 'โต๊ะว่าง' : 'โต๊ะไม่ว่าง'}
                                             </span>
                                         </td>
                                         <td className={`${styles.td} text-center`}>
