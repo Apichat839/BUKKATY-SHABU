@@ -1,7 +1,9 @@
 "use client";
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function MenuPage() {
+    const router = useRouter();
     const [menus, setMenus] = useState([]);
     const [foodTypes, setFoodTypes] = useState([]);
     const [cart, setCart] = useState([]);
@@ -191,17 +193,25 @@ const handleSubmitOrder = async () => {
             {/* Header ส่วนหัว */}
             <header className="h-16 bg-[#1a1a1a] text-white flex items-center justify-between px-6 shrink-0 z-50">
               <div className="flex items-center gap-3">
-                  {/* แก้ไขเป็น <img> เพื่อดึงรูป 11bkt.png มาแสดงในวงกลม */}
-                  <img 
-                      src={`${API_BASE_URL}/imgs/11bkt.png`} 
-                      alt="Bukkaty Logo" 
-                      className="w-10 h-10 rounded-full border border-red-600 object-cover bg-white" 
+                  <img
+                      src={`${API_BASE_URL}/imgs/11bkt.png`}
+                      alt="Bukkaty Logo"
+                      className="w-10 h-10 rounded-full border border-red-600 object-cover bg-white"
                   />
                   <div>
                       <h1 className="font-bold text-lg leading-none">BUKKATY</h1>
                       <span className="text-[10px] text-red-500 font-bold uppercase">TABLE: {tableNo}</span>
                   </div>
               </div>
+              <button
+                  onClick={() => router.push('/menu/dashboard')}
+                  className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-bold rounded-lg border border-white/20 transition-colors"
+              >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  ดูสรุปรายการ
+              </button>
           </header>
 
             {/* เนื้อหาหลักแบ่งซ้ายขวา */}

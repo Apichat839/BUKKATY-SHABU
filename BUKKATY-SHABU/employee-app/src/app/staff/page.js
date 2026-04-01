@@ -1,46 +1,199 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import StaffNavbar from '../components/StaffNavbar';
 import { Card, CardContent } from '@/components/ui/card';
 
+const API_BASE_URL = 'http://localhost:8080';
+
+const CAT_COLORS = [
+    '#dc2626', '#ea580c', '#d97706', '#16a34a',
+    '#0891b2', '#7c3aed', '#db2777', '#0d9488',
+];
+
+// ---- SVG Bar Chart (รองรับ 2 โหมด: qty / revenue) ----
+function BarChart({ bars, unit = '', width = 500, height = 220 }) {
+    if (!bars || bars.length === 0) return (
+        <div className="flex items-center justify-center h-40 text-gray-300 text-sm">ไม่มีข้อมูล</div>
+    );
+
+    const maxVal = Math.max(...bars.map(b => b.value), 1);
+    const pL = 48, pB = 52, pT = 20, pR = 16;
+    const cW = width - pL - pR;
+    const cH = height - pB - pT;
+    const bW = Math.max(18, Math.floor(cW / bars.length) - 12);
+    const gap = (cW - bW * bars.length) / (bars.length + 1);
+    const yLines = [0, 0.25, 0.5, 0.75, 1];
+
+    const fmtLabel = (v) => {
+        if (unit === '฿') return v >= 1000 ? `${(v / 1000).toFixed(1)}k` : String(v);
+        return String(v);
+    };
+
+    return (
+        <svg width="100%" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="xMidYMid meet">
+            {yLines.map((pct, i) => {
+                const y = pT + cH * (1 - pct);
+                return (
+                    <g key={i}>
+                        <line x1={pL} y1={y} x2={width - pR} y2={y}
+                            stroke={i === 0 ? '#d1d5db' : '#f3f4f6'}
+                            strokeWidth={i === 0 ? 1.5 : 1}
+                            strokeDasharray={i === 0 ? 'none' : '4 3'} />
+                        <text x={pL - 5} y={y + 4} textAnchor="end" fontSize="9" fill="#9ca3af">
+                            {fmtLabel(Math.round(maxVal * pct))}{i > 0 && unit === '฿' ? '' : ''}
+                        </text>
+                    </g>
+                );
+            })}
+
+            {bars.map((bar, i) => {
+                const bH = Math.max(2, (bar.value / maxVal) * cH);
+                const x = pL + gap + i * (bW + gap);
+                const y = pT + cH - bH;
+                return (
+                    <g key={i}>
+                        {/* Shadow */}
+                        <rect x={x + 2} y={y + 2} width={bW} height={bH} rx={4} fill={bar.color} opacity={0.15} />
+                        {/* Bar */}
+                        <rect x={x} y={y} width={bW} height={bH} rx={4} fill={bar.color} opacity={0.88} />
+                        {/* Value label */}
+                        {bar.value > 0 && (
+                            <text x={x + bW / 2} y={y - 5} textAnchor="middle" fontSize="10" fontWeight="bold" fill={bar.color}>
+                                {fmtLabel(bar.value)}{unit === '฿' ? '฿' : ''}
+                            </text>
+                        )}
+                        {/* Category label — ตัดถ้ายาว */}
+                        <text x={x + bW / 2} y={pT + cH + 16} textAnchor="middle" fontSize="9" fill="#374151">
+                            {bar.label.length > 5 ? bar.label.slice(0, 5) + '…' : bar.label}
+                        </text>
+                        {/* unit ชิ้น */}
+                        {unit !== '฿' && (
+                            <text x={x + bW / 2} y={pT + cH + 28} textAnchor="middle" fontSize="8" fill="#9ca3af">
+                                {bar.value} ชิ้น
+                            </text>
+                        )}
+                    </g>
+                );
+            })}
+        </svg>
+    );
+}
+
+// ---- SVG Donut Chart ----
+function DonutChart({ segments, size = 180 }) {
+    const r = 62, cx = size / 2, cy = size / 2;
+    const circ = 2 * Math.PI * r;
+    const total = segments.reduce((s, g) => s + g.value, 0);
+    let acc = 0;
+
+    return (
+        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+            <circle cx={cx} cy={cy} r={r} fill="none" stroke="#f3f4f6" strokeWidth={28} />
+            {segments.map((seg, i) => {
+                if (seg.value === 0) return null;
+                const pct = seg.value / total;
+                const dash = pct * circ;
+                const offset = circ * (1 - acc);
+                acc += pct;
+                return (
+                    <circle key={i} cx={cx} cy={cy} r={r} fill="none"
+                        stroke={seg.color} strokeWidth={28}
+                        strokeDasharray={`${dash} ${circ}`}
+                        strokeDashoffset={offset}
+                        style={{ transform: 'rotate(-90deg)', transformOrigin: `${cx}px ${cy}px` }} />
+                );
+            })}
+            <text x={cx} y={cy - 7} textAnchor="middle" fontSize="20" fontWeight="bold" fill="#111">{total}</text>
+            <text x={cx} y={cy + 11} textAnchor="middle" fontSize="9" fill="#6b7280">ชิ้นรวม</text>
+        </svg>
+    );
+}
+
 export default function StaffDashboard() {
     const router = useRouter();
     const [orders, setOrders] = useState([]);
+    const [menus, setMenus] = useState([]);
+    const [foodTypes, setFoodTypes] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const API_BASE_URL = 'http://localhost:8080';
-
     useEffect(() => {
-        const fetchOrders = async () => {
+        const fetchAll = async () => {
             try {
-                const response = await fetch(`${API_BASE_URL}/api/orders/all`);
-                const res = await response.json();
-                if (!res.isError) {
-                    setOrders(res.data);
-                }
-            } catch (error) {
-                console.error("Error fetching orders:", error);
+                const [resOrders, resMenus, resTypes] = await Promise.all([
+                    fetch(`${API_BASE_URL}/api/orders/all`),
+                    fetch(`${API_BASE_URL}/api/menu/all`),
+                    fetch(`${API_BASE_URL}/api/food_types/all`),
+                ]);
+                const [oData, mData, tData] = await Promise.all([
+                    resOrders.json(), resMenus.json(), resTypes.json(),
+                ]);
+                if (!oData.isError) setOrders(oData.data || []);
+                if (!mData.isError) setMenus(mData.data || []);
+                if (!tData.isError) setFoodTypes(tData.data || []);
+            } catch (err) {
+                console.error('Fetch error:', err);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchOrders();
-        const interval = setInterval(fetchOrders, 5000);
-        return () => clearInterval(interval);
+        fetchAll();
+        const iv = setInterval(fetchAll, 5000);
+        return () => clearInterval(iv);
     }, []);
+
+    // map menu_id → food_type_id
+    const menuTypeMap = useMemo(() => {
+        const m = {};
+        menus.forEach(mn => { m[mn.menu_id] = mn.food_type_id; });
+        return m;
+    }, [menus]);
+
+    // map food_type_id → name
+    const typeNameMap = useMemo(() => {
+        const m = {};
+        foodTypes.forEach(ft => { m[ft.food_type_id] = ft.food_type_name; });
+        return m;
+    }, [foodTypes]);
+
+    // สรุปตามประเภท: { typeId: { name, qty, revenue } }
+    const categorySummary = useMemo(() => {
+        const data = {};
+        orders.forEach(order => {
+            let items = [];
+            try { items = JSON.parse(order.items_json); } catch { }
+            items.forEach(item => {
+                const tid = menuTypeMap[item.id] ?? 0;
+                const name = typeNameMap[tid] || 'อื่นๆ';
+                if (!data[tid]) data[tid] = { name, typeId: tid, qty: 0, revenue: 0 };
+                data[tid].qty += item.qty;
+                data[tid].revenue += item.qty * (item.price || 0);
+            });
+        });
+        return Object.values(data).sort((a, b) => b.qty - a.qty);
+    }, [orders, menuTypeMap, typeNameMap]);
+
+    const totalQty = categorySummary.reduce((s, c) => s + c.qty, 0);
+    const totalRevenue = orders.reduce((s, o) => s + (Number(o.total_price) || 0), 0);
+
+    const qtyBars = categorySummary.map((c, i) => ({
+        label: c.name, value: c.qty, color: CAT_COLORS[i % CAT_COLORS.length],
+    }));
+    const revBars = categorySummary.map((c, i) => ({
+        label: c.name, value: c.revenue, color: CAT_COLORS[i % CAT_COLORS.length],
+    }));
+    const donutSegs = categorySummary.map((c, i) => ({
+        value: c.qty, color: CAT_COLORS[i % CAT_COLORS.length],
+    }));
 
     const getStatusStyle = (status) => {
         switch (status) {
-            case 'completed':
-            case 'สำเร็จ':
+            case 'completed': case 'สำเร็จ':
                 return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-            case 'pending':
-            case 'รอดำเนินการ':
+            case 'pending': case 'รอดำเนินการ':
                 return 'bg-amber-50 text-amber-700 border-amber-200';
-            case 'cooking':
-            case 'กำลังทำ':
+            case 'cooking': case 'กำลังทำ':
                 return 'bg-blue-50 text-blue-700 border-blue-200';
             default:
                 return 'bg-gray-100 text-gray-600 border-gray-200';
@@ -52,6 +205,7 @@ export default function StaffDashboard() {
             <StaffNavbar />
 
             <main className="max-w-7xl mx-auto px-6 py-8">
+
                 {/* Page Title */}
                 <div className="flex items-center justify-between mb-8">
                     <div>
@@ -84,11 +238,87 @@ export default function StaffDashboard() {
                         <CardContent className="p-5">
                             <p className="text-emerald-600 text-xs font-bold uppercase tracking-wider mb-1">ยอดรวมทั้งหมด</p>
                             <p className="text-3xl font-bold text-foreground">
-                                {orders.reduce((sum, o) => sum + (Number(o.total_price) || 0), 0).toLocaleString()} ฿
+                                {totalRevenue.toLocaleString()} ฿
                             </p>
                         </CardContent>
                     </Card>
                 </div>
+
+                {/* ===== แดชบอร์ดยอดการสั่งตามประเภท ===== */}
+                {!loading && categorySummary.length > 0 && (
+                    <div className="mb-10">
+                        <div className="flex items-center gap-3 mb-5">
+                            <div className="w-1 h-6 bg-red-600 rounded-full" />
+                            <h3 className="text-lg font-bold text-gray-900">แดชบอร์ดยอดการสั่งตามประเภท</h3>
+                        </div>
+
+                        {/* Category stat mini-cards */}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
+                            {categorySummary.map((cat, i) => {
+                                const color = CAT_COLORS[i % CAT_COLORS.length];
+                                const pct = totalQty > 0 ? ((cat.qty / totalQty) * 100).toFixed(0) : 0;
+                                return (
+                                    <div key={cat.typeId} className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm overflow-hidden relative">
+                                        {/* accent stripe */}
+                                        <div className="absolute top-0 left-0 right-0 h-1 rounded-t-xl" style={{ backgroundColor: color }} />
+                                        <p className="text-xs font-bold text-gray-500 mt-1 truncate">{cat.name}</p>
+                                        <p className="text-2xl font-black mt-1" style={{ color }}>{cat.qty}</p>
+                                        <p className="text-[10px] text-gray-400">ชิ้น · {pct}%</p>
+                                        {/* progress */}
+                                        <div className="mt-2 w-full h-1 bg-gray-100 rounded-full overflow-hidden">
+                                            <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: color }} />
+                                        </div>
+                                        <p className="text-xs font-bold text-gray-700 mt-2">{cat.revenue.toLocaleString()} ฿</p>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Charts grid */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+                            {/* Donut + legend */}
+                            <Card className="shadow-sm border border-gray-100 bg-white">
+                                <CardContent className="p-5">
+                                    <p className="text-sm font-bold text-gray-700 mb-4">สัดส่วนจำนวนที่สั่ง</p>
+                                    <div className="flex flex-col items-center gap-4">
+                                        <DonutChart segments={donutSegs} size={180} />
+                                        <div className="w-full space-y-1.5">
+                                            {categorySummary.map((cat, i) => {
+                                                const pct = totalQty > 0 ? ((cat.qty / totalQty) * 100).toFixed(1) : '0.0';
+                                                return (
+                                                    <div key={cat.typeId} className="flex items-center gap-2">
+                                                        <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ backgroundColor: CAT_COLORS[i % CAT_COLORS.length] }} />
+                                                        <span className="text-xs text-gray-600 flex-1 truncate">{cat.name}</span>
+                                                        <span className="text-xs font-bold text-gray-800">{cat.qty}</span>
+                                                        <span className="text-[10px] text-gray-400 w-10 text-right">{pct}%</span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* Bar — จำนวนชิ้น */}
+                            <Card className="shadow-sm border border-gray-100 bg-white">
+                                <CardContent className="p-5">
+                                    <p className="text-sm font-bold text-gray-700 mb-2">จำนวนที่สั่งต่อประเภท (ชิ้น)</p>
+                                    <BarChart bars={qtyBars} unit="ชิ้น" width={420} height={210} />
+                                </CardContent>
+                            </Card>
+
+                            {/* Bar — รายได้ */}
+                            <Card className="shadow-sm border border-gray-100 bg-white">
+                                <CardContent className="p-5">
+                                    <p className="text-sm font-bold text-gray-700 mb-2">ยอดรวมราคาต่อประเภท (฿)</p>
+                                    <BarChart bars={revBars} unit="฿" width={420} height={210} />
+                                </CardContent>
+                            </Card>
+
+                        </div>
+                    </div>
+                )}
 
                 {/* Loading */}
                 {loading && (
@@ -108,98 +338,84 @@ export default function StaffDashboard() {
                     </div>
                 )}
 
-                {/* Orders Table */}
+                {/* ===== Orders Table ===== */}
                 {!loading && orders.length > 0 && (
-                    <Card className="shadow-sm overflow-hidden border border-border">
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead>
-                                    <tr className="border-b border-border bg-muted">
-                                        <th className="text-left px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">โต๊ะ</th>
-                                        <th className="text-left px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">ชื่อลูกค้า</th>
-                                        <th className="text-left px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">รายการ</th>
-                                        <th className="text-right px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">ราคา</th>
-                                        <th className="text-center px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">สถานะ</th>
-                                        <th className="text-center px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">จัดการ</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-border">
-                                    {orders.map((order, idx) => {
-                                        let items = [];
-                                        try {
-                                            items = JSON.parse(order.items_json);
-                                        } catch (e) {
-                                            items = [];
-                                        }
-
-                                        return (
-                                            <tr
-                                                key={`order-${order.id || idx}`}
-                                                className="hover:bg-muted/40 transition-colors"
-                                            >
-                                                {/* เลขโต๊ะ */}
-                                                <td className="px-6 py-4">
-                                                    <div className="w-10 h-10 bg-red-50 border border-red-200 rounded-xl flex items-center justify-center">
-                                                        <span className="font-bold text-red-600 text-sm">{order.table_name || order.table_no}</span>
-                                                    </div>
-                                                </td>
-
-                                                {/* ชื่อลูกค้า */}
-                                                <td className="px-6 py-4">
-                                                    <span className="font-semibold text-foreground">{order.customer_name || '-'}</span>
-                                                </td>
-
-                                                {/* รายการอาหาร */}
-                                                <td className="px-6 py-4">
-                                                    <div className="flex flex-wrap gap-1.5 max-w-xs">
-                                                        {items.slice(0, 3).map((item, i) => (
-                                                            <span
-                                                                key={i}
-                                                                className="inline-flex items-center px-2.5 py-1 rounded-lg bg-muted text-foreground text-xs font-medium border border-border"
-                                                            >
-                                                                {item.name} <span className="text-red-600 ml-1">x{item.qty}</span>
-                                                            </span>
-                                                        ))}
-                                                        {items.length > 3 && (
-                                                            <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-muted text-muted-foreground text-xs font-medium border border-border">
-                                                                +{items.length - 3} รายการ
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </td>
-
-                                                {/* ราคา */}
-                                                <td className="px-6 py-4 text-right">
-                                                    <span className="font-bold text-foreground">{Number(order.total_price || 0).toLocaleString()} ฿</span>
-                                                </td>
-
-                                                {/* สถานะ */}
-                                                <td className="px-6 py-4 text-center">
-                                                    <span className={`inline-flex text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border ${getStatusStyle(order.status)}`}>
-                                                        {order.status || 'รอดำเนินการ'}
-                                                    </span>
-                                                </td>
-
-                                                {/* ปุ่มดูข้อมูล */}
-                                                <td className="px-6 py-4 text-center">
-                                                    <button
-                                                        onClick={() => router.push(`/staff/view/${order.order_id}`)}
-                                                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-all hover:shadow-md active:scale-95"
-                                                    >
-                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                        </svg>
-                                                        ดูข้อมูล
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
+                    <>
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-1 h-6 bg-red-600 rounded-full" />
+                            <h3 className="text-lg font-bold text-gray-900">รายการออเดอร์ทั้งหมด</h3>
                         </div>
-                    </Card>
+
+                        <Card className="shadow-sm overflow-hidden border border-border">
+                            <div className="overflow-x-auto">
+                                <table className="w-full">
+                                    <thead>
+                                        <tr className="border-b border-border bg-muted">
+                                            <th className="text-left px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">โต๊ะ</th>
+                                            <th className="text-left px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">ชื่อลูกค้า</th>
+                                            <th className="text-left px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">รายการ</th>
+                                            <th className="text-right px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">ราคา</th>
+                                            <th className="text-center px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">สถานะ</th>
+                                            <th className="text-center px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">จัดการ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-border">
+                                        {orders.map((order, idx) => {
+                                            let items = [];
+                                            try { items = JSON.parse(order.items_json); } catch { }
+
+                                            return (
+                                                <tr key={`order-${order.id || idx}`} className="hover:bg-muted/40 transition-colors">
+                                                    <td className="px-6 py-4">
+                                                        <div className="w-10 h-10 bg-red-50 border border-red-200 rounded-xl flex items-center justify-center">
+                                                            <span className="font-bold text-red-600 text-sm">{order.table_name || order.table_no}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <span className="font-semibold text-foreground">{order.customer_name || '-'}</span>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex flex-wrap gap-1.5 max-w-xs">
+                                                            {items.slice(0, 3).map((item, i) => (
+                                                                <span key={i} className="inline-flex items-center px-2.5 py-1 rounded-lg bg-muted text-foreground text-xs font-medium border border-border">
+                                                                    {item.name} <span className="text-red-600 ml-1">x{item.qty}</span>
+                                                                </span>
+                                                            ))}
+                                                            {items.length > 3 && (
+                                                                <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-muted text-muted-foreground text-xs font-medium border border-border">
+                                                                    +{items.length - 3} รายการ
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right">
+                                                        <span className="font-bold text-foreground">{Number(order.total_price || 0).toLocaleString()} ฿</span>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-center">
+                                                        <span className={`inline-flex text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border ${getStatusStyle(order.status)}`}>
+                                                            {order.status || 'รอดำเนินการ'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-center">
+                                                        <button
+                                                            onClick={() => router.push(`/staff/view/${order.order_id}`)}
+                                                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-all hover:shadow-md active:scale-95"
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                            </svg>
+                                                            ดูข้อมูล
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </Card>
+                    </>
                 )}
             </main>
         </div>
