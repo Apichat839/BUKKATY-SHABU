@@ -1,0 +1,96 @@
+.container {
+    /* ผสมผสานภาพพื้นหลังจาก Server พร้อม Overlay สีเข้ม */
+    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+                url('http://127.0.0.1:8080/imgs/bbg1.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    width: 100%;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: 'Inter', 'Kanit', sans-serif;
+    color: #fff;
+}
+
+.title {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-top: 1rem;
+    margin-bottom: 2.5rem;
+    color: #ffffff;
+    text-align: center;
+    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.8);
+    width: 100%;
+    max-width: 600px;
+    border-bottom: 2px solid rgba(255, 215, 0, 0.3); /* เส้นขอบล่างสีทองจางๆ */
+    padding-bottom: 1rem;
+}
+
+.chartSection {
+    margin-top: 1rem;
+    width: 100%;
+    max-width: 900px;
+    /* Glassmorphism: พื้นหลังโปร่งแสงและเบลอภาพข้างหลัง */
+    background: rgba(255, 255, 255, 0.07);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-radius: 1.5rem;
+    padding: 2.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+}
+
+.chartTitle {
+    color: #ffd700; /* สีทองธีมร้าน */
+    font-size: 1.4rem;
+    margin-bottom: 2rem;
+    font-weight: 700;
+    border-left: 5px solid #ffd700;
+    padding-left: 1rem;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.chartWrapper {
+    width: 100%;
+    height: 400px;
+    margin-top: 20px;
+}
+
+.backBtn {
+    background: none;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.2s ease;
+    padding: 0.5rem 0;
+    opacity: 0.8;
+}
+
+.backBtn:hover {
+    opacity: 1;
+    color: #ffd700;
+    text-decoration: underline;
+}
+
+.loading {
+    color: #ffd700;
+    font-size: 1.3rem;
+    margin-top: 5rem;
+    text-align: center;
+    font-weight: 600;
+}
+
+.emptyState {
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+    text-align: center;
+    padding: 4rem;
+    font-size: 1.1rem;
+}

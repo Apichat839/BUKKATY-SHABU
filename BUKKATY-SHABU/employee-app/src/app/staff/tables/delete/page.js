@@ -84,8 +84,7 @@ export default function DeleteTablePage() {
             </div>
 
             <button
-                onClick={() => router.back()}
-                className={styles.backLink}
+                onClick={() => router.back()} className={styles.backLink}
             >
                 ← กลับหน้าเมนู
             </button>
