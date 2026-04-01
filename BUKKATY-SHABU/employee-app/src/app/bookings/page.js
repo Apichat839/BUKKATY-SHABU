@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Form, Button, Card, Table, Modal, Badge } from 'react-bootstrap';
-// นำเข้าไฟล์ CSS ที่แยกออกมา
 import './bookingspage.module.css'; 
 
 export default function BookingPage() {
@@ -88,9 +87,12 @@ export default function BookingPage() {
                 alert("🗑️ ลบการจองสำเร็จ!");
                 fetchBookings();
                 if (formData.booking_id === id) resetForm();
+            } else {
+                alert("❌ เกิดข้อผิดพลาดในการลบ: " + (res.errorMessage || res.message));
             }
         } catch (error) {
             console.error("Delete Error:", error);
+            alert("⚠️ ไม่สามารถติดต่อเซิร์ฟเวอร์ได้");
         }
     };
 
@@ -137,7 +139,7 @@ export default function BookingPage() {
             <Card className="booking-card shadow border-warning">
                 <Card.Body>
                     <Card.Title className="text-warning text-center mb-4">
-                        {formData.booking_id ? '📝 แก้ไขการจอง' : '📅 จองโต๊ะ Bukkaty Shabu'}
+                        {formData.booking_id ? '📝 แก้ไขการจอง' : <b>📅 จองโต๊ะ Bukkaty Shabu</b>}
                     </Card.Title>
                     <Form onSubmit={handleSubmit}>
                         <Form.Group className="mb-3">
