@@ -120,7 +120,8 @@ export default function LoginPage() {
     };
 
     const handleStaffLogin = () => {
-        if (password === "1234") { 
+        if (password === "1234") {
+            sessionStorage.setItem('staff_auth', 'true');
             setStaffLoggedIn(true);
             setView("staff_dashboard");
         } else {

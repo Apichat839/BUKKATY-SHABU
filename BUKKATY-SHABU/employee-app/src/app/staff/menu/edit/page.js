@@ -1,11 +1,13 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import StaffNavbar from '@/app/components/StaffNavbar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+
+const API_BASE_URL = 'http://localhost:8080';
 
 export default function EditMenuPage() {
     const router = useRouter();
@@ -18,39 +20,34 @@ export default function EditMenuPage() {
     const [imageFile, setImageFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState('');
     const [loading, setLoading] = useState(false);
-    const [success, setSuccess] = useState('');
-    const [error, setError] = useState('');
+    const [status, setStatus] = useState(null); // null | 'success' | 'error'
+    const [statusMsg, setStatusMsg] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
 
-    const API_BASE_URL = 'http://localhost:8080';
-
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [resMenu, resTypes] = await Promise.all([
-                    fetch(`${API_BASE_URL}/api/menu/all`),
-                    fetch(`${API_BASE_URL}/api/food_types/all`),
-                ]);
-                const menuData = await resMenu.json();
-                const typeData = await resTypes.json();
-                if (!menuData.isError) setMenus(menuData.data);
-                if (!typeData.isError) setFoodTypes(typeData.data);
-            } catch (err) {
-                console.error('Error fetching data:', err);
-            }
-        };
-        fetchData();
+    const fetchData = useCallback(async () => {
+        try {
+            const [resMenu, resTypes] = await Promise.all([
+                fetch(`${API_BASE_URL}/api/menu/all`),
+                fetch(`${API_BASE_URL}/api/food_types/all`),
+            ]);
+            const [menuData, typeData] = await Promise.all([resMenu.json(), resTypes.json()]);
+            if (!menuData.isError) setMenus(menuData.data);
+            if (!typeData.isError) setFoodTypes(typeData.data);
+        } catch (err) {
+            console.error('Fetch error:', err);
+        }
     }, []);
+
+    useEffect(() => { fetchData(); }, [fetchData]);
 
     const selectMenuItem = (item) => {
         setSelectedMenu(item);
         setMenuName(item.menu_name);
         setPrice(String(item.price));
         setFoodTypeId(String(item.food_type_id));
-        setPreviewUrl(`${API_BASE_URL}/imgs/${item.image_url}`);
+        setPreviewUrl(item.image_url ? `${API_BASE_URL}/imgs/${item.image_url}` : '');
         setImageFile(null);
-        setSuccess('');
-        setError('');
+        setStatus(null);
     };
 
     const handleImageChange = (e) => {
@@ -64,13 +61,16 @@ export default function EditMenuPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!selectedMenu) return;
+
         setLoading(true);
-        setError('');
-        setSuccess('');
+        setStatus(null);
+
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
 
         try {
             const formData = new FormData();
-            formData.append('menu_name', menuName);
+            formData.append('menu_name', menuName.trim());
             formData.append('price', price);
             formData.append('food_type_id', foodTypeId);
             if (imageFile) formData.append('file', imageFile);
@@ -78,34 +78,53 @@ export default function EditMenuPage() {
             const response = await fetch(`${API_BASE_URL}/api/menu/update/${selectedMenu.menu_id}`, {
                 method: 'POST',
                 body: formData,
+                signal: controller.signal,
             });
 
+            clearTimeout(timeout);
+
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
             const result = await response.json();
+
             if (result.isError) {
-                setError(result.message || 'เกิดข้อผิดพลาดในการแก้ไข');
+                setStatus('error');
+                setStatusMsg(result.errorMessage || result.message || 'เกิดข้อผิดพลาดในการแก้ไข');
             } else {
-                setSuccess('แก้ไขเมนูสำเร็จ!');
-                setMenus((prev) =>
-                    prev.map((m) =>
-                        m.menu_id === selectedMenu.menu_id
-                            ? { ...m, menu_name: menuName, price: Number(price), food_type_id: Number(foodTypeId) }
-                            : m
-                    )
-                );
+                setStatus('success');
+                setStatusMsg(`แก้ไขเมนู "${menuName.trim()}" สำเร็จแล้ว`);
+                // อัปเดตรายการในหน้าจอโดยไม่ต้อง reload
+                setMenus(prev => prev.map(m =>
+                    m.menu_id === selectedMenu.menu_id
+                        ? {
+                            ...m,
+                            menu_name: menuName.trim(),
+                            price: Number(price),
+                            food_type_id: Number(foodTypeId),
+                            image_url: imageFile ? `${Date.now()}_${imageFile.name}` : m.image_url,
+                        }
+                        : m
+                ));
+                setSelectedMenu(prev => ({ ...prev, menu_name: menuName.trim() }));
+                setImageFile(null);
             }
         } catch (err) {
-            setError('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
+            clearTimeout(timeout);
+            if (err.name === 'AbortError') {
+                setStatus('error');
+                setStatusMsg('หมดเวลาเชื่อมต่อ — ตรวจสอบว่า Backend Server (port 8080) รันอยู่');
+            } else {
+                setStatus('error');
+                setStatusMsg(`ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ (${err.message})`);
+            }
         } finally {
             setLoading(false);
         }
     };
 
-    const getTypeName = (typeId) => {
-        const found = foodTypes.find((t) => t.food_type_id === typeId);
-        return found ? found.food_type_name : '';
-    };
+    const getTypeName = (typeId) => foodTypes.find(t => t.food_type_id === typeId)?.food_type_name || '';
 
-    const filteredMenus = menus.filter((m) =>
+    const filteredMenus = menus.filter(m =>
         m.menu_name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -133,11 +152,11 @@ export default function EditMenuPage() {
 
                 <div className="mb-6">
                     <h2 className="text-2xl font-bold tracking-tight text-foreground">แก้ไขเมนู</h2>
-                    <p className="text-muted-foreground text-sm mt-1">เลือกเมนูที่ต้องการแก้ไขจากรายการด้านล่าง</p>
+                    <p className="text-muted-foreground text-sm mt-1">เลือกเมนูที่ต้องการแก้ไขจากรายการด้านซ้าย</p>
                 </div>
 
                 <div className="flex gap-6 flex-col lg:flex-row">
-                    {/* Menu List */}
+                    {/* รายการเมนู */}
                     <div className="flex-1 min-w-0">
                         <Input
                             type="text"
@@ -173,8 +192,11 @@ export default function EditMenuPage() {
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-sm font-semibold truncate text-foreground">{item.menu_name}</p>
-                                                    <p className="text-xs text-muted-foreground">{item.price} ฿</p>
+                                                    <p className="text-xs text-muted-foreground">{Number(item.price).toLocaleString()} ฿</p>
                                                 </div>
+                                                {selectedMenu?.menu_id === item.menu_id && (
+                                                    <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
+                                                )}
                                             </button>
                                         ))}
                                     </div>
@@ -186,7 +208,7 @@ export default function EditMenuPage() {
                         </Card>
                     </div>
 
-                    {/* Edit Form */}
+                    {/* ฟอร์มแก้ไข */}
                     <div className="w-full lg:w-96 shrink-0">
                         {!selectedMenu ? (
                             <Card className="shadow-sm">
@@ -200,31 +222,55 @@ export default function EditMenuPage() {
                             </Card>
                         ) : (
                             <Card className="shadow-sm">
-                                <CardHeader className="pb-4">
-                                    <CardTitle className="text-base font-bold">แก้ไข: {selectedMenu.menu_name}</CardTitle>
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="text-base font-bold flex items-center gap-2">
+                                        <span className="w-2 h-2 rounded-full bg-amber-500" />
+                                        แก้ไข: {selectedMenu.menu_name}
+                                    </CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    {success && (
-                                        <div className="mb-4 px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-700 text-sm font-medium">
-                                            ✓ {success}
+                                    {status === 'success' && (
+                                        <div className="mb-4 px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-sm font-medium flex items-center gap-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            {statusMsg}
                                         </div>
                                     )}
-                                    {error && (
-                                        <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm font-medium">
-                                            ✕ {error}
+                                    {status === 'error' && (
+                                        <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm font-medium flex items-center gap-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            {statusMsg}
                                         </div>
                                     )}
+
                                     <form onSubmit={handleSubmit} className="space-y-4">
                                         <div className="space-y-1.5">
-                                            <Label>ชื่อเมนู</Label>
-                                            <Input type="text" value={menuName} onChange={(e) => setMenuName(e.target.value)} required />
+                                            <Label>ชื่อเมนู <span className="text-red-500">*</span></Label>
+                                            <Input
+                                                type="text"
+                                                value={menuName}
+                                                onChange={(e) => setMenuName(e.target.value)}
+                                                required
+                                            />
                                         </div>
+
                                         <div className="space-y-1.5">
-                                            <Label>ราคา (฿)</Label>
-                                            <Input type="number" value={price} onChange={(e) => setPrice(e.target.value)} required min="0" />
+                                            <Label>ราคา (฿) <span className="text-red-500">*</span></Label>
+                                            <Input
+                                                type="number"
+                                                value={price}
+                                                onChange={(e) => setPrice(e.target.value)}
+                                                required
+                                                min="0"
+                                                step="0.01"
+                                            />
                                         </div>
+
                                         <div className="space-y-1.5">
-                                            <Label>หมวดหมู่</Label>
+                                            <Label>หมวดหมู่ <span className="text-red-500">*</span></Label>
                                             <select
                                                 value={foodTypeId}
                                                 onChange={(e) => setFoodTypeId(e.target.value)}
@@ -238,24 +284,36 @@ export default function EditMenuPage() {
                                                 ))}
                                             </select>
                                         </div>
+
                                         <div className="space-y-1.5">
                                             <Label>รูปภาพ</Label>
                                             <div className="flex items-center gap-3">
                                                 <label className="flex-1 cursor-pointer">
                                                     <div className="h-9 px-3 flex items-center rounded-md border border-dashed border-input bg-background text-sm text-muted-foreground hover:border-primary hover:text-primary transition-colors">
-                                                        {imageFile ? imageFile.name : 'เปลี่ยนรูปภาพ'}
+                                                        {imageFile ? imageFile.name : 'เปลี่ยนรูปภาพ (ไม่บังคับ)'}
                                                     </div>
                                                     <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
                                                 </label>
                                                 {previewUrl && (
                                                     <div className="w-12 h-12 rounded-lg overflow-hidden border border-border shrink-0">
-                                                        <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
+                                                        <img src={previewUrl} alt="Preview" className="w-full h-full object-cover"
+                                                            onError={(e) => { e.target.style.display = 'none'; }} />
                                                     </div>
                                                 )}
                                             </div>
                                         </div>
-                                        <Button type="submit" disabled={loading} className="w-full bg-amber-500 hover:bg-amber-600 text-white">
-                                            {loading ? 'กำลังบันทึก...' : 'บันทึกการแก้ไข'}
+
+                                        <Button
+                                            type="submit"
+                                            disabled={loading}
+                                            className="w-full bg-amber-500 hover:bg-amber-600 text-white"
+                                        >
+                                            {loading ? (
+                                                <span className="flex items-center gap-2">
+                                                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                    กำลังบันทึก...
+                                                </span>
+                                            ) : 'บันทึกการแก้ไข'}
                                         </Button>
                                     </form>
                                 </CardContent>

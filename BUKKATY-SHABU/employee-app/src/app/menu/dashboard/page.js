@@ -132,6 +132,7 @@ export default function OrderDashboardPage() {
     const [orders, setOrders] = useState([]);
     const [menus, setMenus] = useState([]);
     const [foodTypes, setFoodTypes] = useState([]);
+    const [authChecked, setAuthChecked] = useState(false);
     const [loading, setLoading] = useState(true);
 
     const fetchAll = useCallback(async () => {
@@ -156,11 +157,22 @@ export default function OrderDashboardPage() {
         }
     }, []);
 
+    // ---- Auth Guard: ตรวจสอบสิทธิ์ก่อนโหลดข้อมูล ----
     useEffect(() => {
+        const isStaff = sessionStorage.getItem('staff_auth') === 'true';
+        if (!isStaff) {
+            router.replace('/login');
+        } else {
+            setAuthChecked(true);
+        }
+    }, [router]);
+
+    useEffect(() => {
+        if (!authChecked) return;
         fetchAll();
         const iv = setInterval(fetchAll, 15000);
         return () => clearInterval(iv);
-    }, [fetchAll]);
+    }, [fetchAll, authChecked]);
 
     // สร้าง map menu_id -> food_type_id
     const menuTypeMap = React.useMemo(() => {
@@ -220,6 +232,8 @@ export default function OrderDashboardPage() {
         color: CATEGORY_COLORS[i % CATEGORY_COLORS.length],
     }));
 
+    if (!authChecked) return null;
+
     return (
         <div className="min-h-screen bg-gray-50 font-sans">
             {/* Header */}
@@ -256,7 +270,7 @@ export default function OrderDashboardPage() {
                 </div>
             </header>
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+            <main className="max-w-7xl mx-auto px-3 sm:px-6 py-5 sm:py-8">
 
                 {/* Title */}
                 <div className="mb-6">
@@ -272,7 +286,7 @@ export default function OrderDashboardPage() {
                 ) : (
                     <>
                         {/* Summary Cards */}
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
                             <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                                 <p className="text-red-600 text-xs font-bold uppercase tracking-wider mb-1">ออเดอร์ทั้งหมด</p>
                                 <p className="text-3xl font-black text-gray-900">{orders.length}</p>
@@ -300,7 +314,7 @@ export default function OrderDashboardPage() {
                         ) : (
                             <>
                                 {/* Charts Section */}
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
 
                                     {/* Donut Chart */}
                                     <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
@@ -334,7 +348,7 @@ export default function OrderDashboardPage() {
 
                                 {/* Category Detail Cards */}
                                 <h3 className="font-bold text-gray-800 text-base mb-4">รายละเอียดตามประเภท</h3>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
                                     {summary.map((cat, i) => {
                                         const color = CATEGORY_COLORS[i % CATEGORY_COLORS.length];
                                         const pct = totalItems > 0 ? ((cat.totalQty / totalItems) * 100).toFixed(1) : '0.0';

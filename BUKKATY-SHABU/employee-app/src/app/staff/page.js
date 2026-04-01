@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import StaffNavbar from '../components/StaffNavbar';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,7 +11,7 @@ const CAT_COLORS = [
     '#0891b2', '#7c3aed', '#db2777', '#0d9488',
 ];
 
-// ---- SVG Bar Chart (รองรับ 2 โหมด: qty / revenue) ----
+// ---- SVG Bar Chart ----
 function BarChart({ bars, unit = '', width = 500, height = 220 }) {
     if (!bars || bars.length === 0) return (
         <div className="flex items-center justify-center h-40 text-gray-300 text-sm">ไม่มีข้อมูล</div>
@@ -41,7 +41,7 @@ function BarChart({ bars, unit = '', width = 500, height = 220 }) {
                             strokeWidth={i === 0 ? 1.5 : 1}
                             strokeDasharray={i === 0 ? 'none' : '4 3'} />
                         <text x={pL - 5} y={y + 4} textAnchor="end" fontSize="9" fill="#9ca3af">
-                            {fmtLabel(Math.round(maxVal * pct))}{i > 0 && unit === '฿' ? '' : ''}
+                            {fmtLabel(Math.round(maxVal * pct))}
                         </text>
                     </g>
                 );
@@ -53,21 +53,16 @@ function BarChart({ bars, unit = '', width = 500, height = 220 }) {
                 const y = pT + cH - bH;
                 return (
                     <g key={i}>
-                        {/* Shadow */}
                         <rect x={x + 2} y={y + 2} width={bW} height={bH} rx={4} fill={bar.color} opacity={0.15} />
-                        {/* Bar */}
                         <rect x={x} y={y} width={bW} height={bH} rx={4} fill={bar.color} opacity={0.88} />
-                        {/* Value label */}
                         {bar.value > 0 && (
                             <text x={x + bW / 2} y={y - 5} textAnchor="middle" fontSize="10" fontWeight="bold" fill={bar.color}>
                                 {fmtLabel(bar.value)}{unit === '฿' ? '฿' : ''}
                             </text>
                         )}
-                        {/* Category label — ตัดถ้ายาว */}
                         <text x={x + bW / 2} y={pT + cH + 16} textAnchor="middle" fontSize="9" fill="#374151">
                             {bar.label.length > 5 ? bar.label.slice(0, 5) + '…' : bar.label}
                         </text>
-                        {/* unit ชิ้น */}
                         {unit !== '฿' && (
                             <text x={x + bW / 2} y={pT + cH + 28} textAnchor="middle" fontSize="8" fill="#9ca3af">
                                 {bar.value} ชิ้น
@@ -110,38 +105,99 @@ function DonutChart({ segments, size = 180 }) {
     );
 }
 
+// ---- Toast Notification ----
+function ToastList({ toasts, onDismiss }) {
+    if (toasts.length === 0) return null;
+    return (
+        <div className="fixed top-20 right-4 z-50 flex flex-col gap-2 max-w-xs w-full">
+            {toasts.map(t => (
+                <div key={t.id}
+                    className="flex items-start gap-3 bg-white border border-amber-300 shadow-lg rounded-xl px-4 py-3 animate-in slide-in-from-right-4">
+                    <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center shrink-0">
+                        <span className="text-base">🔔</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-amber-700 uppercase tracking-wide">อัปเดตออเดอร์</p>
+                        <p className="text-sm font-semibold text-gray-800 mt-0.5">
+                            โต๊ะ {t.table} · {t.count} ออเดอร์ใหม่
+                        </p>
+                    </div>
+                    <button onClick={() => onDismiss(t.id)}
+                        className="text-gray-400 hover:text-gray-600 text-lg leading-none shrink-0 mt-0.5">×</button>
+                </div>
+            ))}
+        </div>
+    );
+}
+
 export default function StaffDashboard() {
     const router = useRouter();
     const [orders, setOrders] = useState([]);
     const [menus, setMenus] = useState([]);
     const [foodTypes, setFoodTypes] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [notifications, setNotifications] = useState([]);
+
+    // Track previously seen order IDs to detect new ones
+    const prevOrderIdsRef = useRef(null); // null = first load (don't notify)
+
+    const dismissToast = useCallback((id) => {
+        setNotifications(prev => prev.filter(n => n.id !== id));
+    }, []);
+
+    const fetchAll = useCallback(async () => {
+        try {
+            const [resOrders, resMenus, resTypes] = await Promise.all([
+                fetch(`${API_BASE_URL}/api/orders/all`),
+                fetch(`${API_BASE_URL}/api/menu/all`),
+                fetch(`${API_BASE_URL}/api/food_types/all`),
+            ]);
+            const [oData, mData, tData] = await Promise.all([
+                resOrders.json(), resMenus.json(), resTypes.json(),
+            ]);
+
+            if (!oData.isError) {
+                const newOrders = oData.data || [];
+
+                // Detect new orders (skip on first load)
+                if (prevOrderIdsRef.current !== null) {
+                    const tableUpdates = {};
+                    newOrders.forEach(o => {
+                        if (!prevOrderIdsRef.current.has(o.order_id)) {
+                            const t = String(o.table_name || o.table_no || '?');
+                            tableUpdates[t] = (tableUpdates[t] || 0) + 1;
+                        }
+                    });
+                    const newToasts = Object.entries(tableUpdates).map(([table, count]) => ({
+                        id: Date.now() + Math.random(),
+                        table,
+                        count,
+                    }));
+                    if (newToasts.length > 0) {
+                        setNotifications(prev => [...prev, ...newToasts]);
+                        newToasts.forEach(t => {
+                            setTimeout(() => dismissToast(t.id), 5000);
+                        });
+                    }
+                }
+
+                prevOrderIdsRef.current = new Set(newOrders.map(o => o.order_id));
+                setOrders(newOrders);
+            }
+            if (!mData.isError) setMenus(mData.data || []);
+            if (!tData.isError) setFoodTypes(tData.data || []);
+        } catch (err) {
+            console.error('Fetch error:', err);
+        } finally {
+            setLoading(false);
+        }
+    }, [dismissToast]);
 
     useEffect(() => {
-        const fetchAll = async () => {
-            try {
-                const [resOrders, resMenus, resTypes] = await Promise.all([
-                    fetch(`${API_BASE_URL}/api/orders/all`),
-                    fetch(`${API_BASE_URL}/api/menu/all`),
-                    fetch(`${API_BASE_URL}/api/food_types/all`),
-                ]);
-                const [oData, mData, tData] = await Promise.all([
-                    resOrders.json(), resMenus.json(), resTypes.json(),
-                ]);
-                if (!oData.isError) setOrders(oData.data || []);
-                if (!mData.isError) setMenus(mData.data || []);
-                if (!tData.isError) setFoodTypes(tData.data || []);
-            } catch (err) {
-                console.error('Fetch error:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchAll();
         const iv = setInterval(fetchAll, 5000);
         return () => clearInterval(iv);
-    }, []);
+    }, [fetchAll]);
 
     // map menu_id → food_type_id
     const menuTypeMap = useMemo(() => {
@@ -157,7 +213,7 @@ export default function StaffDashboard() {
         return m;
     }, [foodTypes]);
 
-    // สรุปตามประเภท: { typeId: { name, qty, revenue } }
+    // สรุปตามประเภท
     const categorySummary = useMemo(() => {
         const data = {};
         orders.forEach(order => {
@@ -173,6 +229,32 @@ export default function StaffDashboard() {
         });
         return Object.values(data).sort((a, b) => b.qty - a.qty);
     }, [orders, menuTypeMap, typeNameMap]);
+
+    // Group orders by table
+    const groupedOrders = useMemo(() => {
+        const groups = {};
+        orders.forEach(order => {
+            const key = String(order.table_name || order.table_no || 'unknown');
+            if (!groups[key]) {
+                groups[key] = {
+                    tableKey: key,
+                    orders: [],
+                    totalPrice: 0,
+                    customerName: order.customer_name || '-',
+                    allItems: [],
+                };
+            }
+            groups[key].orders.push(order);
+            groups[key].totalPrice += Number(order.total_price || 0);
+            try {
+                const items = JSON.parse(order.items_json);
+                groups[key].allItems.push(...items);
+            } catch { }
+        });
+        return Object.values(groups).sort((a, b) =>
+            a.tableKey.localeCompare(b.tableKey, undefined, { numeric: true })
+        );
+    }, [orders]);
 
     const totalQty = categorySummary.reduce((s, c) => s + c.qty, 0);
     const totalRevenue = orders.reduce((s, o) => s + (Number(o.total_price) || 0), 0);
@@ -203,6 +285,7 @@ export default function StaffDashboard() {
     return (
         <div className="min-h-screen bg-gray-50 font-sans">
             <StaffNavbar />
+            <ToastList toasts={notifications} onDismiss={dismissToast} />
 
             <main className="max-w-7xl mx-auto px-6 py-8">
 
@@ -222,16 +305,14 @@ export default function StaffDashboard() {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
                     <Card className="border border-red-200 bg-white shadow-sm">
                         <CardContent className="p-5">
-                            <p className="text-red-600 text-xs font-bold uppercase tracking-wider mb-1">ออเดอร์ทั้งหมด</p>
-                            <p className="text-3xl font-bold text-foreground">{orders.length}</p>
+                            <p className="text-red-600 text-xs font-bold uppercase tracking-wider mb-1">โต๊ะที่ใช้งาน</p>
+                            <p className="text-3xl font-bold text-foreground">{groupedOrders.length}</p>
                         </CardContent>
                     </Card>
                     <Card className="border border-amber-200 bg-white shadow-sm">
                         <CardContent className="p-5">
-                            <p className="text-amber-600 text-xs font-bold uppercase tracking-wider mb-1">รอดำเนินการ</p>
-                            <p className="text-3xl font-bold text-foreground">
-                                {orders.filter(o => o.status === 'pending' || o.status === 'รอดำเนินการ').length}
-                            </p>
+                            <p className="text-amber-600 text-xs font-bold uppercase tracking-wider mb-1">ออเดอร์ทั้งหมด</p>
+                            <p className="text-3xl font-bold text-foreground">{orders.length}</p>
                         </CardContent>
                     </Card>
                     <Card className="border border-emerald-200 bg-white shadow-sm">
@@ -259,12 +340,10 @@ export default function StaffDashboard() {
                                 const pct = totalQty > 0 ? ((cat.qty / totalQty) * 100).toFixed(0) : 0;
                                 return (
                                     <div key={cat.typeId} className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm overflow-hidden relative">
-                                        {/* accent stripe */}
                                         <div className="absolute top-0 left-0 right-0 h-1 rounded-t-xl" style={{ backgroundColor: color }} />
-                                        <p className="text-xs font-bold text-gray-500 mt-1 truncate">{cat.name}</p>
+                                        <p title={cat.name} className="text-xs font-bold text-gray-500 mt-1 line-clamp-2 leading-tight min-h-[2rem]">{cat.name}</p>
                                         <p className="text-2xl font-black mt-1" style={{ color }}>{cat.qty}</p>
                                         <p className="text-[10px] text-gray-400">ชิ้น · {pct}%</p>
-                                        {/* progress */}
                                         <div className="mt-2 w-full h-1 bg-gray-100 rounded-full overflow-hidden">
                                             <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: color }} />
                                         </div>
@@ -275,9 +354,7 @@ export default function StaffDashboard() {
                         </div>
 
                         {/* Charts grid */}
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-
-                            {/* Donut + legend */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                             <Card className="shadow-sm border border-gray-100 bg-white">
                                 <CardContent className="p-5">
                                     <p className="text-sm font-bold text-gray-700 mb-4">สัดส่วนจำนวนที่สั่ง</p>
@@ -287,11 +364,11 @@ export default function StaffDashboard() {
                                             {categorySummary.map((cat, i) => {
                                                 const pct = totalQty > 0 ? ((cat.qty / totalQty) * 100).toFixed(1) : '0.0';
                                                 return (
-                                                    <div key={cat.typeId} className="flex items-center gap-2">
-                                                        <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ backgroundColor: CAT_COLORS[i % CAT_COLORS.length] }} />
-                                                        <span className="text-xs text-gray-600 flex-1 truncate">{cat.name}</span>
-                                                        <span className="text-xs font-bold text-gray-800">{cat.qty}</span>
-                                                        <span className="text-[10px] text-gray-400 w-10 text-right">{pct}%</span>
+                                                    <div key={cat.typeId} className="flex items-start gap-2">
+                                                        <span className="w-2.5 h-2.5 rounded-sm shrink-0 mt-0.5" style={{ backgroundColor: CAT_COLORS[i % CAT_COLORS.length] }} />
+                                                        <span title={cat.name} className="text-xs text-gray-600 flex-1 line-clamp-2 leading-tight">{cat.name}</span>
+                                                        <span className="text-xs font-bold text-gray-800 shrink-0">{cat.qty}</span>
+                                                        <span className="text-[10px] text-gray-400 w-10 text-right shrink-0">{pct}%</span>
                                                     </div>
                                                 );
                                             })}
@@ -300,7 +377,6 @@ export default function StaffDashboard() {
                                 </CardContent>
                             </Card>
 
-                            {/* Bar — จำนวนชิ้น */}
                             <Card className="shadow-sm border border-gray-100 bg-white">
                                 <CardContent className="p-5">
                                     <p className="text-sm font-bold text-gray-700 mb-2">จำนวนที่สั่งต่อประเภท (ชิ้น)</p>
@@ -308,14 +384,12 @@ export default function StaffDashboard() {
                                 </CardContent>
                             </Card>
 
-                            {/* Bar — รายได้ */}
                             <Card className="shadow-sm border border-gray-100 bg-white">
                                 <CardContent className="p-5">
                                     <p className="text-sm font-bold text-gray-700 mb-2">ยอดรวมราคาต่อประเภท (฿)</p>
                                     <BarChart bars={revBars} unit="฿" width={420} height={210} />
                                 </CardContent>
                             </Card>
-
                         </div>
                     </div>
                 )}
@@ -338,12 +412,13 @@ export default function StaffDashboard() {
                     </div>
                 )}
 
-                {/* ===== Orders Table ===== */}
-                {!loading && orders.length > 0 && (
+                {/* ===== Orders Table (grouped by table) ===== */}
+                {!loading && groupedOrders.length > 0 && (
                     <>
                         <div className="flex items-center gap-3 mb-4">
                             <div className="w-1 h-6 bg-red-600 rounded-full" />
-                            <h3 className="text-lg font-bold text-gray-900">รายการออเดอร์ทั้งหมด</h3>
+                            <h3 className="text-lg font-bold text-gray-900">รายการออเดอร์แยกตามโต๊ะ</h3>
+                            <span className="text-xs text-gray-400 font-medium">{groupedOrders.length} โต๊ะ · {orders.length} ออเดอร์</span>
                         </div>
 
                         <Card className="shadow-sm overflow-hidden border border-border">
@@ -351,62 +426,97 @@ export default function StaffDashboard() {
                                 <table className="w-full">
                                     <thead>
                                         <tr className="border-b border-border bg-muted">
-                                            <th className="text-left px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">โต๊ะ</th>
-                                            <th className="text-left px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">ชื่อลูกค้า</th>
-                                            <th className="text-left px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">รายการ</th>
-                                            <th className="text-right px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">ราคา</th>
-                                            <th className="text-center px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">สถานะ</th>
-                                            <th className="text-center px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">จัดการ</th>
+                                            <th className="text-left px-3 sm:px-6 py-3 sm:py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">โต๊ะ</th>
+                                            <th className="text-left px-3 sm:px-6 py-3 sm:py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground hidden sm:table-cell">ชื่อลูกค้า</th>
+                                            <th className="text-left px-3 sm:px-6 py-3 sm:py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">รายการ</th>
+                                            <th className="text-right px-3 sm:px-6 py-3 sm:py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">ราคารวม</th>
+                                            <th className="text-center px-3 sm:px-6 py-3 sm:py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground hidden md:table-cell">ออเดอร์</th>
+                                            <th className="text-center px-3 sm:px-6 py-3 sm:py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">จัดการ</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-border">
-                                        {orders.map((order, idx) => {
-                                            let items = [];
-                                            try { items = JSON.parse(order.items_json); } catch { }
+                                        {groupedOrders.map((group) => {
+                                            // รวม items ทั้งหมดในโต๊ะ แสดงแค่ 3 รายการแรก
+                                            const allItems = group.allItems;
+                                            const shownItems = allItems.slice(0, 3);
+                                            const moreCount = allItems.length - shownItems.length;
+
+                                            // สถานะรวม: ถ้ามี pending ให้แสดง pending
+                                            const statuses = group.orders.map(o => o.status || 'pending');
+                                            const displayStatus = statuses.includes('pending') || statuses.includes('รอดำเนินการ')
+                                                ? 'pending'
+                                                : statuses.includes('cooking') || statuses.includes('กำลังทำ')
+                                                    ? 'cooking'
+                                                    : 'completed';
 
                                             return (
-                                                <tr key={`order-${order.id || idx}`} className="hover:bg-muted/40 transition-colors">
-                                                    <td className="px-6 py-4">
-                                                        <div className="w-10 h-10 bg-red-50 border border-red-200 rounded-xl flex items-center justify-center">
-                                                            <span className="font-bold text-red-600 text-sm">{order.table_name || order.table_no}</span>
+                                                <tr key={group.tableKey} className="hover:bg-muted/40 transition-colors align-top">
+                                                    {/* โต๊ะ */}
+                                                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                                                        <div className="flex flex-col items-start gap-1">
+                                                            <div className="min-w-[2.5rem] px-2 h-9 bg-red-50 border border-red-200 rounded-xl flex items-center justify-center">
+                                                                <span className="font-bold text-red-600 text-xs sm:text-sm">{group.tableKey}</span>
+                                                            </div>
+                                                            <span className={`inline-flex text-[10px] font-bold px-2 py-0.5 rounded-full border md:hidden ${getStatusStyle(displayStatus)}`}>
+                                                                {displayStatus === 'pending' ? 'รอ' : displayStatus === 'cooking' ? 'ทำ' : 'เสร็จ'}
+                                                            </span>
                                                         </div>
                                                     </td>
-                                                    <td className="px-6 py-4">
-                                                        <span className="font-semibold text-foreground">{order.customer_name || '-'}</span>
+
+                                                    {/* ชื่อลูกค้า */}
+                                                    <td className="px-3 sm:px-6 py-3 sm:py-4 max-w-[100px] hidden sm:table-cell">
+                                                        <span className="font-semibold text-foreground break-words text-sm">{group.customerName}</span>
                                                     </td>
-                                                    <td className="px-6 py-4">
-                                                        <div className="flex flex-wrap gap-1.5 max-w-xs">
-                                                            {items.slice(0, 3).map((item, i) => (
-                                                                <span key={i} className="inline-flex items-center px-2.5 py-1 rounded-lg bg-muted text-foreground text-xs font-medium border border-border">
-                                                                    {item.name} <span className="text-red-600 ml-1">x{item.qty}</span>
+
+                                                    {/* รายการรวม */}
+                                                    <td className="px-3 sm:px-6 py-3 sm:py-4">
+                                                        <div className="flex flex-wrap gap-1 sm:gap-1.5 max-w-[200px] sm:max-w-[260px]">
+                                                            {shownItems.map((item, i) => (
+                                                                <span key={i} title={item.name}
+                                                                    className="inline-flex items-center px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg bg-muted text-foreground text-[11px] sm:text-xs font-medium border border-border max-w-[140px]">
+                                                                    <span className="truncate">{item.name}</span>
+                                                                    <span className="text-red-600 ml-1 shrink-0">x{item.qty}</span>
                                                                 </span>
                                                             ))}
-                                                            {items.length > 3 && (
-                                                                <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-muted text-muted-foreground text-xs font-medium border border-border">
-                                                                    +{items.length - 3} รายการ
+                                                            {moreCount > 0 && (
+                                                                <span className="inline-flex items-center px-2 py-0.5 rounded-lg bg-muted text-muted-foreground text-[11px] font-medium border border-border shrink-0">
+                                                                    +{moreCount}
                                                                 </span>
                                                             )}
                                                         </div>
                                                     </td>
-                                                    <td className="px-6 py-4 text-right">
-                                                        <span className="font-bold text-foreground">{Number(order.total_price || 0).toLocaleString()} ฿</span>
+
+                                                    {/* ราคารวม */}
+                                                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-right whitespace-nowrap">
+                                                        <span className="font-bold text-foreground text-sm">{group.totalPrice.toLocaleString()} ฿</span>
                                                     </td>
-                                                    <td className="px-6 py-4 text-center">
-                                                        <span className={`inline-flex text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border ${getStatusStyle(order.status)}`}>
-                                                            {order.status || 'รอดำเนินการ'}
-                                                        </span>
+
+                                                    {/* จำนวนออเดอร์ + สถานะ */}
+                                                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-center hidden md:table-cell">
+                                                        <div className="flex flex-col items-center gap-1.5">
+                                                            <span className="text-sm font-bold text-gray-700">{group.orders.length} ออเดอร์</span>
+                                                            <span className={`inline-flex text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${getStatusStyle(displayStatus)}`}>
+                                                                {displayStatus === 'pending' ? 'รอดำเนินการ' : displayStatus === 'cooking' ? 'กำลังทำ' : 'สำเร็จ'}
+                                                            </span>
+                                                        </div>
                                                     </td>
-                                                    <td className="px-6 py-4 text-center">
-                                                        <button
-                                                            onClick={() => router.push(`/staff/view/${order.order_id}`)}
-                                                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-all hover:shadow-md active:scale-95"
-                                                        >
-                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                            </svg>
-                                                            ดูข้อมูล
-                                                        </button>
+
+                                                    {/* ปุ่มดูข้อมูลแต่ละออเดอร์ */}
+                                                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-center">
+                                                        <div className="flex flex-col gap-1.5 items-center">
+                                                            {group.orders.map((order, oi) => (
+                                                                <button key={order.order_id}
+                                                                    onClick={() => router.push(`/staff/view/${order.order_id}`)}
+                                                                    className="inline-flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-all hover:shadow-md active:scale-95 whitespace-nowrap">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                                    </svg>
+                                                                    <span className="hidden sm:inline">ออเดอร์ {oi + 1}</span>
+                                                                    <span className="sm:hidden">{oi + 1}</span>
+                                                                </button>
+                                                            ))}
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             );
