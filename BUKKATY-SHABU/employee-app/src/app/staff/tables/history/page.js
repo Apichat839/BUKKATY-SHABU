@@ -38,8 +38,10 @@ export default function OrderHistoryPage() {
                     </thead>
                     <tbody>
                         {history.length > 0 ? (
-                            history.map((h) => (
-                                <tr key={h.order_id} className={styles.tr}>
+                            // แก้ไขบรรทัดนี้: เพิ่ม index เข้ามาเพื่อใช้เป็น key กันเหนียว
+                            history.map((h, index) => (
+                                // แก้ไขบรรทัดนี้: ระบุ key โดยใช้ h.booking_id หรือ index
+                                <tr key={h.booking_id || index} className={styles.tr}>
                                     <td className={styles.td}>
                                         {new Date(h.booking_date).toLocaleString('th-TH')}
                                     </td>
@@ -47,13 +49,12 @@ export default function OrderHistoryPage() {
                                         โต๊ะ {h.table_number || h.table_name || 'ทั่วไป'}
                                     </td>
                                     <td className={styles.td}>{h.customer_name}</td>
-                                    <td className={`${styles.td} ${styles.textCenter}`}>
-                                    </td>
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="5" className={styles.emptyState}>
+                                {/* แก้ไข colspan ให้ตรงกับจำนวนหัวข้อตาราง (ในที่นี้คือ 3) */}
+                                <td colSpan="3" className={styles.emptyState}>
                                     ไม่พบประวัติการใช้งาน
                                 </td>
                             </tr>

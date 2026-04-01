@@ -33,8 +33,8 @@ export default function EditTablePage() {
         setEditingTable(table);
         setTableNo(table.table_number);
         setCapacity(table.seating_capacity);
-        // ถ้าค่าใน DB เป็นค่าว่าง หรือ null ให้ตั้งเป็น available ทันทีในฟอร์ม
-        setStatus("");
+        // ตั้งค่า status เริ่มต้นจากข้อมูลโต๊ะที่มีอยู่
+        setStatus(table.table_status || 'available');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
@@ -48,7 +48,7 @@ export default function EditTablePage() {
 
         try {
             const response = await fetch('http://127.0.0.1:8080/api/tables/update', {
-                method: 'PUT',
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     table_id: editingTable.table_id,

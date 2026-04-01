@@ -11,7 +11,7 @@ import generatePayload from 'promptpay-qr';
 const API_BASE_URL = 'http://localhost:8080';
 
 // *** เปลี่ยนเป็นเบอร์ PromptPay ของร้าน ***
-const PROMPTPAY_ID = '0812345678';
+const PROMPTPAY_ID = '0980509592';
 
 const CAT_COLORS = [
     '#dc2626', '#ea580c', '#d97706', '#16a34a',
