@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import StaffNavbar from '../components/StaffNavbar';
+import { Card, CardContent } from '@/components/ui/card';
 
 export default function StaffDashboard() {
     const router = useRouter();
@@ -34,89 +35,95 @@ export default function StaffDashboard() {
         switch (status) {
             case 'completed':
             case 'สำเร็จ':
-                return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+                return 'bg-emerald-50 text-emerald-700 border-emerald-200';
             case 'pending':
             case 'รอดำเนินการ':
-                return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
+                return 'bg-amber-50 text-amber-700 border-amber-200';
             case 'cooking':
             case 'กำลังทำ':
-                return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+                return 'bg-blue-50 text-blue-700 border-blue-200';
             default:
-                return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+                return 'bg-gray-100 text-gray-600 border-gray-200';
         }
     };
 
     return (
-        <div className="min-h-screen bg-[#0f0f0f] text-white font-sans">
+        <div className="min-h-screen bg-gray-50 font-sans">
             <StaffNavbar />
 
             <main className="max-w-7xl mx-auto px-6 py-8">
                 {/* Page Title */}
                 <div className="flex items-center justify-between mb-8">
                     <div>
-                        <h2 className="text-2xl font-black tracking-tight">รายการสั่งอาหาร</h2>
-                        <p className="text-gray-500 text-sm mt-1">Bukkaty Shabu · ติดตามออเดอร์แบบเรียลไทม์</p>
+                        <h2 className="text-2xl font-bold tracking-tight text-foreground">รายการสั่งอาหาร</h2>
+                        <p className="text-muted-foreground text-sm mt-1">Bukkaty Shabu · ติดตามออเดอร์แบบเรียลไทม์</p>
                     </div>
-                    <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-800/30 rounded-full">
+                    <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-full">
                         <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                        <span className="text-emerald-400 text-xs font-bold">อัปเดตอัตโนมัติ</span>
+                        <span className="text-emerald-700 text-xs font-bold">อัปเดตอัตโนมัติ</span>
                     </div>
                 </div>
 
                 {/* Summary Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-                    <div className="bg-gradient-to-br from-red-600/20 to-red-900/10 border border-red-800/30 rounded-2xl p-5">
-                        <p className="text-red-400 text-xs font-bold uppercase tracking-wider mb-1">ออเดอร์ทั้งหมด</p>
-                        <p className="text-3xl font-black">{orders.length}</p>
-                    </div>
-                    <div className="bg-gradient-to-br from-amber-600/20 to-amber-900/10 border border-amber-800/30 rounded-2xl p-5">
-                        <p className="text-amber-400 text-xs font-bold uppercase tracking-wider mb-1">รอดำเนินการ</p>
-                        <p className="text-3xl font-black">
-                            {orders.filter(o => o.status === 'pending' || o.status === 'รอดำเนินการ').length}
-                        </p>
-                    </div>
-                    <div className="bg-gradient-to-br from-emerald-600/20 to-emerald-900/10 border border-emerald-800/30 rounded-2xl p-5">
-                        <p className="text-emerald-400 text-xs font-bold uppercase tracking-wider mb-1">ยอดรวมทั้งหมด</p>
-                        <p className="text-3xl font-black">
-                            {orders.reduce((sum, o) => sum + (Number(o.total_price) || 0), 0).toLocaleString()} ฿
-                        </p>
-                    </div>
+                    <Card className="border border-red-200 bg-white shadow-sm">
+                        <CardContent className="p-5">
+                            <p className="text-red-600 text-xs font-bold uppercase tracking-wider mb-1">ออเดอร์ทั้งหมด</p>
+                            <p className="text-3xl font-bold text-foreground">{orders.length}</p>
+                        </CardContent>
+                    </Card>
+                    <Card className="border border-amber-200 bg-white shadow-sm">
+                        <CardContent className="p-5">
+                            <p className="text-amber-600 text-xs font-bold uppercase tracking-wider mb-1">รอดำเนินการ</p>
+                            <p className="text-3xl font-bold text-foreground">
+                                {orders.filter(o => o.status === 'pending' || o.status === 'รอดำเนินการ').length}
+                            </p>
+                        </CardContent>
+                    </Card>
+                    <Card className="border border-emerald-200 bg-white shadow-sm">
+                        <CardContent className="p-5">
+                            <p className="text-emerald-600 text-xs font-bold uppercase tracking-wider mb-1">ยอดรวมทั้งหมด</p>
+                            <p className="text-3xl font-bold text-foreground">
+                                {orders.reduce((sum, o) => sum + (Number(o.total_price) || 0), 0).toLocaleString()} ฿
+                            </p>
+                        </CardContent>
+                    </Card>
                 </div>
 
                 {/* Loading */}
                 {loading && (
                     <div className="flex items-center justify-center py-20">
-                        <div className="w-10 h-10 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
-                        <span className="ml-4 text-gray-400 text-lg">กำลังโหลดข้อมูล...</span>
+                        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                        <span className="ml-4 text-muted-foreground text-lg">กำลังโหลดข้อมูล...</span>
                     </div>
                 )}
 
                 {/* Empty */}
                 {!loading && orders.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-20 text-gray-500">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mb-4 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                    <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mb-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                         </svg>
-                        <p className="text-xl font-bold">ยังไม่มีรายการสั่งอาหาร</p>
+                        <p className="text-xl font-bold text-foreground">ยังไม่มีรายการสั่งอาหาร</p>
                     </div>
                 )}
 
                 {/* Orders Table */}
                 {!loading && orders.length > 0 && (
-                    <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl overflow-hidden shadow-xl">
+                    <Card className="shadow-sm overflow-hidden border border-border">
                         <div className="overflow-x-auto">
                             <table className="w-full">
                                 <thead>
-                                    <tr className="border-b border-gray-800 bg-[#111]">
-                                        <th className="text-left px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">โต๊ะ</th>
-                                        <th className="text-left px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">ชื่อลูกค้า</th>
-                                        <th className="text-left px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">รายการ</th>
-                                        <th className="text-right px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">ราคา</th>
-                                        <th className="text-center px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">สถานะ</th>
-                                        <th className="text-center px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">จัดการ</th>
+                                    <tr className="border-b border-border bg-muted">
+                                        <th className="text-left px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">โต๊ะ</th>
+                                        <th className="text-left px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">ชื่อลูกค้า</th>
+                                        <th className="text-left px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">รายการ</th>
+                                        <th className="text-right px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">ราคา</th>
+                                        <th className="text-center px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">สถานะ</th>
+                                        <th className="text-center px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">จัดการ</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-800/50">
+                                <tbody className="divide-y divide-border">
                                     {orders.map((order, idx) => {
                                         let items = [];
                                         try {
@@ -128,33 +135,33 @@ export default function StaffDashboard() {
                                         return (
                                             <tr
                                                 key={`order-${order.id || idx}`}
-                                                className="hover:bg-white/[0.02] transition-colors"
+                                                className="hover:bg-muted/40 transition-colors"
                                             >
                                                 {/* เลขโต๊ะ */}
                                                 <td className="px-6 py-4">
-                                                    <div className="w-10 h-10 bg-red-600/20 border border-red-700/30 rounded-xl flex items-center justify-center">
-                                                        <span className="font-black text-red-400">{order.table_name || order.table_no}</span>
+                                                    <div className="w-10 h-10 bg-red-50 border border-red-200 rounded-xl flex items-center justify-center">
+                                                        <span className="font-bold text-red-600 text-sm">{order.table_name || order.table_no}</span>
                                                     </div>
                                                 </td>
 
                                                 {/* ชื่อลูกค้า */}
                                                 <td className="px-6 py-4">
-                                                    <span className="font-semibold text-gray-200">{order.customer_name || '-'}</span>
+                                                    <span className="font-semibold text-foreground">{order.customer_name || '-'}</span>
                                                 </td>
 
-                                                {/* รายการอาหาร (แสดงย่อ) */}
+                                                {/* รายการอาหาร */}
                                                 <td className="px-6 py-4">
                                                     <div className="flex flex-wrap gap-1.5 max-w-xs">
                                                         {items.slice(0, 3).map((item, i) => (
                                                             <span
                                                                 key={i}
-                                                                className="inline-flex items-center px-2.5 py-1 rounded-lg bg-gray-800 text-gray-300 text-xs font-medium"
+                                                                className="inline-flex items-center px-2.5 py-1 rounded-lg bg-muted text-foreground text-xs font-medium border border-border"
                                                             >
-                                                                {item.name} <span className="text-red-400 ml-1">x{item.qty}</span>
+                                                                {item.name} <span className="text-red-600 ml-1">x{item.qty}</span>
                                                             </span>
                                                         ))}
                                                         {items.length > 3 && (
-                                                            <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-gray-800 text-gray-500 text-xs font-medium">
+                                                            <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-muted text-muted-foreground text-xs font-medium border border-border">
                                                                 +{items.length - 3} รายการ
                                                             </span>
                                                         )}
@@ -163,7 +170,7 @@ export default function StaffDashboard() {
 
                                                 {/* ราคา */}
                                                 <td className="px-6 py-4 text-right">
-                                                    <span className="font-bold text-white">{Number(order.total_price || 0).toLocaleString()} ฿</span>
+                                                    <span className="font-bold text-foreground">{Number(order.total_price || 0).toLocaleString()} ฿</span>
                                                 </td>
 
                                                 {/* สถานะ */}
@@ -176,8 +183,8 @@ export default function StaffDashboard() {
                                                 {/* ปุ่มดูข้อมูล */}
                                                 <td className="px-6 py-4 text-center">
                                                     <button
-                                                        onClick={() => router.push(`/staff/view/${order.id}`)}
-                                                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-all hover:shadow-lg hover:shadow-red-600/20 active:scale-95"
+                                                        onClick={() => router.push(`/staff/view/${order.order_id}`)}
+                                                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-all hover:shadow-md active:scale-95"
                                                     >
                                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                                             <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -192,7 +199,7 @@ export default function StaffDashboard() {
                                 </tbody>
                             </table>
                         </div>
-                    </div>
+                    </Card>
                 )}
             </main>
         </div>

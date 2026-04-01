@@ -1,14 +1,15 @@
 "use client";
 import React, { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 
 export default function MenuPage() {
-    const router = useRouter();
     const [menus, setMenus] = useState([]);
     const [foodTypes, setFoodTypes] = useState([]);
     const [cart, setCart] = useState([]);
     const [totalPrice, setTotalPrice] = useState(0);
-    const [tableNo, setTableNo] = useState("01"); // เริ่มต้นตามไฟล์เดิม
+    const [tableNo, setTableNo] = useState("01");
+    const [submitting, setSubmitting] = useState(false);
+    const [submitStatus, setSubmitStatus] = useState(null); // null | 'success' | 'error'
+    const [errorMsg, setErrorMsg] = useState('');
 
     const API_BASE_URL = 'http://localhost:8080';
 
@@ -110,9 +111,82 @@ const handleRemove = (id) => {
     setCart(cart.filter(item => item.id !== id));
 };
 
+const handleSubmitOrder = async () => {
+    if (cart.length === 0) return;
+    setSubmitting(true);
+    setSubmitStatus(null);
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/orders/create`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                table_name: tableNo,
+                table_no: tableNo,
+                customer_name: '',
+                items: cart,
+                total_price: totalPrice,
+            }),
+        });
+        const result = await response.json();
+        if (result.isError) {
+            setErrorMsg(result.errorMessage || 'เกิดข้อผิดพลาด');
+            setSubmitStatus('error');
+        } else {
+            setSubmitStatus('success');
+            setCart([]);
+        }
+    } catch (err) {
+        setErrorMsg('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
+        setSubmitStatus('error');
+    } finally {
+        setSubmitting(false);
+    }
+};
+
     return (
-        /* โครงสร้างหน้าจอหลักตามที่คุณส่งมา (ห้ามแก้) */
         <div className="flex flex-col h-screen w-full bg-gray-50 overflow-hidden font-sans">
+
+            {/* Popup สำเร็จ */}
+            {submitStatus === 'success' && (
+                <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center">
+                    <div className="bg-white rounded-2xl p-8 shadow-2xl flex flex-col items-center max-w-sm w-full mx-4">
+                        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <h3 className="text-xl font-black text-gray-900 mb-1">ส่งรายการสำเร็จ!</h3>
+                        <p className="text-gray-500 text-sm text-center mb-6">รายการของคุณถูกส่งไปยังครัวแล้ว กรุณารอสักครู่</p>
+                        <button
+                            onClick={() => setSubmitStatus(null)}
+                            className="w-full py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition-colors"
+                        >
+                            ตกลง
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Popup ไม่สำเร็จ */}
+            {submitStatus === 'error' && (
+                <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center">
+                    <div className="bg-white rounded-2xl p-8 shadow-2xl flex flex-col items-center max-w-sm w-full mx-4">
+                        <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </div>
+                        <h3 className="text-xl font-black text-gray-900 mb-1">ส่งรายการไม่สำเร็จ</h3>
+                        <p className="text-gray-500 text-sm text-center mb-6">{errorMsg || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง'}</p>
+                        <button
+                            onClick={() => setSubmitStatus(null)}
+                            className="w-full py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-colors"
+                        >
+                            ลองใหม่
+                        </button>
+                    </div>
+                </div>
+            )}
             
             {/* Header ส่วนหัว */}
             <header className="h-16 bg-[#1a1a1a] text-white flex items-center justify-between px-6 shrink-0 z-50">
@@ -238,15 +312,12 @@ const handleRemove = (id) => {
                             <span className="text-gray-400 font-bold uppercase text-xs">ยอดรวม</span>
                             <span className="text-2xl font-black text-red-600">{totalPrice.toLocaleString()} ฿</span>
                         </div>
-                        <button 
-                            disabled={cart.length === 0}
-                            onClick={() => {
-                                sessionStorage.setItem('customerOrder', JSON.stringify(cart));
-                                router.push('/bill');
-                            }}
-                            className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg transition-all ${cart.length > 0 ? 'bg-green-600 text-white hover:bg-green-700 active:scale-95' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
+                        <button
+                            disabled={cart.length === 0 || submitting}
+                            onClick={handleSubmitOrder}
+                            className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg transition-all ${cart.length > 0 && !submitting ? 'bg-green-600 text-white hover:bg-green-700 active:scale-95' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
                         >
-                            ส่งรายการสั่ง
+                            {submitting ? 'กำลังส่ง...' : 'ส่งรายการสั่ง'}
                         </button>
                     </div>
                 </aside>
