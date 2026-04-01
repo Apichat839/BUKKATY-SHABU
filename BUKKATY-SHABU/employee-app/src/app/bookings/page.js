@@ -1,11 +1,13 @@
 "use client";
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Form, Button, Card, Table, Modal, Badge } from 'react-bootstrap';
 // นำเข้าไฟล์ CSS ที่แยกออกมา
 import './bookingspage.module.css'; 
 
 export default function BookingPage() {
+    const router = useRouter();
     const [formData, setFormData] = useState({
         booking_id: null,
         customer_name: '',
@@ -182,6 +184,9 @@ export default function BookingPage() {
                             </Button>
                             <Button variant="outline-info" onClick={() => setShowMonthlyModal(true)}>
                                 📊 สรุปยอดการจองรายเดือน
+                            </Button>
+                            <Button variant="danger" onClick={() => router.push('/login')} className="fw-bold mt-2">
+                                ⬅️ กลับหน้าเริ่มต้น / เข้าสู่ระบบ
                             </Button>
                         </div>
                     </Form>
