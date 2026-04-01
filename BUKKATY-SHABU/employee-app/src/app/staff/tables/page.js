@@ -2,6 +2,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './tablepage.module.css';
+import StaffNavbar from '@/app/components/StaffNavbar';
 
 export default function TableMenuPage() {
     const router = useRouter();
@@ -14,6 +15,8 @@ export default function TableMenuPage() {
     ];
 
     return (
+        <>
+        <StaffNavbar/>
         <div className={styles.container}>
             <h1 className={styles.title}>
                 ระบบจัดการโต๊ะ (Bukkaty Shabu)
@@ -38,5 +41,6 @@ export default function TableMenuPage() {
                 กลับไปหน้าหลักของพนักงาน
             </button>
         </div>
+        </>
     );
 }

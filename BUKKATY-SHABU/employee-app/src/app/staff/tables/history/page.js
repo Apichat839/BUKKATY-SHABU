@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './historypage.module.css'; // นำเข้าไฟล์ CSS
+import StaffNavbar from '@/app/components/StaffNavbar';
 
 export default function OrderHistoryPage() {
     const [history, setHistory] = useState([]);
