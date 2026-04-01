@@ -17,7 +17,6 @@ export default function BookingPage() {
     });
     const [bookings, setBookings] = useState([]);
     const [showModal, setShowModal] = useState(false);
-    const [showMonthlyModal, setShowMonthlyModal] = useState(false);
 
     const fetchBookings = async () => {
         try {
@@ -114,26 +113,6 @@ export default function BookingPage() {
         setShowModal(false);
     };
 
-    const monthlySummary = bookings.reduce((acc, b) => {
-        if (!b.booking_date) return acc;
-        const d = new Date(b.booking_date);
-        const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-        if (!acc[monthKey]) {
-            acc[monthKey] = {
-                monthKey,
-                year: d.getFullYear(),
-                month: String(d.getMonth() + 1).padStart(2, '0'),
-                totalBookings: 0,
-                totalGuests: 0
-            };
-        }
-        acc[monthKey].totalBookings += 1;
-        acc[monthKey].totalGuests += Number(b.number_of_guests || 0);
-        return acc;
-    }, {});
-
-    const monthlySummaryList = Object.values(monthlySummary).sort((a, b) => b.monthKey.localeCompare(a.monthKey));
-
     return (
         <Container className="booking-container">
             <Card className="booking-card shadow border-warning">
@@ -184,9 +163,6 @@ export default function BookingPage() {
                             <Button variant="outline-secondary" onClick={() => setShowModal(true)}>
                                 🔍 ดูรายการทั้งหมด / แก้ไข
                             </Button>
-                            <Button variant="outline-info" onClick={() => setShowMonthlyModal(true)}>
-                                📊 สรุปยอดการจองรายเดือน
-                            </Button>
                             <Button variant="danger" onClick={() => router.push('/login')} className="fw-bold mt-2">
                                 ⬅️ กลับหน้าเริ่มต้น / เข้าสู่ระบบ
                             </Button>
@@ -234,33 +210,6 @@ export default function BookingPage() {
                             )) : (
                                 <tr><td colSpan="5" className="text-center">ไม่พบข้อมูลการจอง</td></tr>
                             )}
-                        </tbody>
-                    </Table>
-                </Modal.Body>
-            </Modal>
-
-            {/* Modal รายเดือน */}
-            <Modal show={showMonthlyModal} onHide={() => setShowMonthlyModal(false)} size="md" centered>
-                <Modal.Header closeButton className="bg-info text-white">
-                    <Modal.Title><h5 className="mb-0">📊 ยอดการจองรายเดือน</h5></Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <Table striped bordered hover responsive className="text-center">
-                        <thead className="table-info">
-                            <tr>
-                                <th>เดือน/ปี</th>
-                                <th>จำนวนครั้งที่จอง</th>
-                                <th>จำนวนแขก (ท่าน)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {monthlySummaryList.map(item => (
-                                <tr key={item.monthKey}>
-                                    <td>{`${item.month}/${item.year}`}</td>
-                                    <td>{item.totalBookings}</td>
-                                    <td>{item.totalGuests}</td>
-                                </tr>
-                            ))}
                         </tbody>
                     </Table>
                 </Modal.Body>
