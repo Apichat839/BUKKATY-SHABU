@@ -174,25 +174,3 @@ export default function EditTablePage() {
         </div>
     );
 }
-d} text-center`}>
-                                            <button
-                                                onClick={() => handleEditClick(t)}
-                                                className={styles.editBtn}
-                                            >
-                                                แก้ไข
-                                            </button>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
-                </div>
-
-                <div onClick={() => router.back()} className={styles.backLink} style={{ cursor: 'pointer' }}>
-                    ← กลับหน้าหลักของพนักงาน
-                </div>
-            </div>
-        </div>
-    );
-}
