@@ -203,21 +203,6 @@ app.get("/api/bookings/all_details", async (req, res) => {
     }
 });
 
-app.delete("/api/bookings/delete/:id", async (req, res) => {
-    try {
-        const db = require('./db_pool');
-        const sql = `DELETE FROM bookings WHERE booking_id = ?`;
-        const [result] = await db.execute(sql, [req.params.id]);
-        if (result.affectedRows > 0) {
-            res.json({ isError: false, message: "ลบการจองสำเร็จ" });
-        } else {
-            res.json({ isError: true, errorMessage: "ไม่พบข้อมูลการจองที่ต้องการลบ" });
-        }
-    } catch (err) {
-        res.json({ isError: true, errorMessage: err.message });
-    }
-});
-
 // --- API สำหรับจัดการโต๊ะ (Tables) ---
 app.get("/api/tables/all", async (req, res) => {
     const response = await tables.getAllTables();
