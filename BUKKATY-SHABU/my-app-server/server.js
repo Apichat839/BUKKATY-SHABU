@@ -130,7 +130,12 @@ app.get("/api/orders/all", async (req, res) => {
     res.json(response);
 });
 
-app.post("/api/orders/update_status", checkAccessToken, async (req, res) => {
+app.post("/api/orders/clear_table", async (req, res) => {
+    const result = await orders.clearTable(req.body.table_name);
+    res.json(result);
+});
+
+app.post("/api/orders/update_status", async (req, res) => {
     const result = await orders.updateStatus(req.body.order_id, req.body.status);
     res.json(result);
 });
