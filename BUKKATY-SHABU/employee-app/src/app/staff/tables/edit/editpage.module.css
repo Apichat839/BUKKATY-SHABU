@@ -1,4 +1,3 @@
-/* editpage.module.css */
 .container {
     background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), 
                 url('http://127.0.0.1:8080/imgs/bbg1.jpg');
@@ -29,7 +28,6 @@
     padding-bottom: 1rem;
 }
 
-/* ฟอร์มแก้ไข (Edit Form) */
 .editCard {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
@@ -80,7 +78,6 @@
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
 }
 
-/* ตาราง (Table Section) */
 .tableSection {
     background: white;
     border-radius: 1rem;
@@ -118,7 +115,6 @@
     padding: 1rem;
 }
 
-/* สถานะ (Status Badges) */
 .badge {
     padding: 0.25rem 0.75rem;
     border-radius: 9999px;
@@ -129,7 +125,6 @@
 .available { background-color: #dcfce7; color: #15803d; }
 .occupied { background-color: #fee2e2; color: #b91c1c; }
 
-/* ปุ่มจัดการ */
 .updateBtn {
     background-color: #2563eb;
     color: white;

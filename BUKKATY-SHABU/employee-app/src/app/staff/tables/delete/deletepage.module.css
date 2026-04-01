@@ -3,23 +3,23 @@
                 url('http://127.0.0.1:8080/imgs/bbg1.jpg');
     background-size: cover;
     background-position: center;
-    background-attachment: fixed; /* ล็อครูปพื้นหลังไว้ไม่ให้ไถลตามการ scroll */
+    background-attachment: fixed;
     
     padding: 2rem 1rem;
     margin: 0;
-    height: 100vh; /* ให้สูงเต็มความสูงหน้าจอเสมอ */
-    width: 100%;       /* ให้กว้างเต็มจอ */
+    height: 100vh;
+    width: 100%;
     
     display: flex;
     flex-direction: column;
-    align-items: center; /* จัดเนื้อหาให้อยู่กลางแนวนอน */
+    align-items: center;
 }
 
 .title {
     font-size: 1.25rem;
     font-weight: 700;
     margin-bottom: 1.5rem;
-    color: #ffffff; /* สีแดง */
+    color: #ffffff;
     border-bottom: 2px solid #f3f4f6;
     padding-bottom: 0.5rem;
 }

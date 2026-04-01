@@ -20,8 +20,8 @@ export default function DeleteTablePage() {
             .catch(err => console.error("Error fetching tables:", err));
     };
 
-    useEffect(() => { 
-        fetchTables(); 
+    useEffect(() => {
+        fetchTables();
     }, []);
 
     const handleDelete = async (id, no) => {
@@ -29,14 +29,14 @@ export default function DeleteTablePage() {
 
         try {
             const response = await fetch(`http://127.0.0.1:8080/api/tables/delete/${id}`, {
-                method: 'DELETE',
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' }
             });
 
             const data = await response.json();
             if (data.result) {
                 alert("ลบข้อมูลสำเร็จ!");
-                fetchTables(); 
+                fetchTables();
             } else {
                 alert("เกิดข้อผิดพลาด: " + data.message);
             }
@@ -48,7 +48,7 @@ export default function DeleteTablePage() {
     return (
         <div className={styles.container}>
             <h1 className={styles.title}>ลบข้อมูลโต๊ะ</h1>
-            
+
             <div className={styles.tableSection}>
                 <table className={styles.table}>
                     <thead className={styles.thead}>
@@ -65,7 +65,7 @@ export default function DeleteTablePage() {
                                     <td className={styles.td}><b>โต๊ะ {t.table_number}</b></td>
                                     <td className={styles.td}>{t.seating_capacity} ที่นั่ง</td>
                                     <td className={`${styles.td} ${styles.textCenter}`}>
-                                        <button 
+                                        <button
                                             onClick={() => handleDelete(t.table_id, t.table_number)}
                                             className={styles.deleteBtn}
                                         >
@@ -82,9 +82,9 @@ export default function DeleteTablePage() {
                     </tbody>
                 </table>
             </div>
-            
-            <button 
-                onClick={() => router.back()} 
+
+            <button
+                onClick={() => router.back()}
                 className={styles.backLink}
             >
                 ← กลับหน้าเมนู

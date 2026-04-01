@@ -40,8 +40,18 @@ export default function StaffNavbar() {
     const router = useRouter();
     const pathname = usePathname();
 
+    // เช็คว่าเป็นหน้าในหมวดหมู่จัดการโต๊ะหรือไม่ เพื่อเปลี่ยนธีมเป็นสีดำกรอบทอง
+    const isTablePage = pathname.startsWith('/staff/tables');
+
+    const headerStyles = isTablePage 
+        ? "sticky top-0 z-50 bg-[#1a1a1a] border-b-2 border-[#ffd700] shadow-lg" // ธีมดำ-ทอง สำหรับหน้าโต๊ะ
+        : "sticky top-0 z-50 bg-white border-b border-border shadow-sm";        // ธีมปกติ
+
+    const textStyles = isTablePage ? "text-white" : "text-foreground";
+    const subTextStyles = isTablePage ? "text-[#ffd700]" : "text-primary";
+
     return (
-        <header className="sticky top-0 z-50 bg-white border-b border-border shadow-sm">
+        <header className={headerStyles}>
             <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
                 {/* Logo */}
                 <div
@@ -51,11 +61,16 @@ export default function StaffNavbar() {
                     <img
                         src={`${API_BASE_URL}/imgs/11bkt.png`}
                         alt="Bukkaty Logo"
-                        className="w-9 h-9 rounded-full border-2 border-primary object-cover bg-muted"
+                        className={cn(
+                            "w-9 h-9 rounded-full border-2 object-cover bg-muted",
+                            isTablePage ? "border-[#ffd700]" : "border-primary"
+                        )}
                     />
                     <div>
-                        <h1 className="font-bold text-base leading-none tracking-wide text-foreground">BUKKATY</h1>
-                        <span className="text-[10px] text-primary font-bold uppercase tracking-widest">Staff Dashboard</span>
+                        <h1 className={cn("font-bold text-base leading-none tracking-wide", textStyles)}>BUKKATY</h1>
+                        <span className={cn("text-[10px] font-bold uppercase tracking-widest", subTextStyles)}>
+                            {isTablePage ? "Table Management" : "Staff Dashboard"}
+                        </span>
                     </div>
                 </div>
 
@@ -66,13 +81,18 @@ export default function StaffNavbar() {
                             item.path === '/staff'
                                 ? pathname === '/staff'
                                 : pathname.startsWith(item.path);
+                        
                         return (
                             <Button
                                 key={item.path}
-                                variant={isActive ? 'default' : 'ghost'}
+                                variant={isActive ? (isTablePage ? 'secondary' : 'default') : 'ghost'}
                                 size="sm"
                                 onClick={() => router.push(item.path)}
-                                className={cn('flex items-center gap-2 text-sm font-medium')}
+                                className={cn(
+                                    'flex items-center gap-2 text-sm font-medium transition-all',
+                                    isTablePage && !isActive && "text-gray-300 hover:text-white hover:bg-white/10",
+                                    isTablePage && isActive && "bg-[#ffd700] text-black hover:bg-[#ffed4a]"
+                                )}
                             >
                                 {item.icon}
                                 {item.label}

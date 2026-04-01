@@ -15,14 +15,14 @@ export default function AddTablePage() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    table_no: parseInt(tableNo), 
+                    table_no: parseInt(tableNo),
                     capacity: parseInt(capacity)
                 })
             });
             const data = await response.json();
             if (data.result) {
-                alert("บันทึกข้อมูลสำเร็จ!"); 
-                router.push('/staff/tables'); 
+                alert("บันทึกข้อมูลสำเร็จ!");
+                router.push('/staff/tables');
             } else {
                 alert("เกิดข้อผิดพลาด: มีโต๊ะซ้ำ");
             }
@@ -38,7 +38,7 @@ export default function AddTablePage() {
                 <form onSubmit={handleSubmit}>
                     <div className={styles.formGroup}>
                         <label className={styles.label}>หมายเลขโต๊ะ</label>
-                        <input 
+                        <input
                             type="number"
                             min="1"
                             value={tableNo}
@@ -50,7 +50,7 @@ export default function AddTablePage() {
                     </div>
                     <div className={styles.formGroup}>
                         <label className={styles.label}>จำนวนที่นั่ง</label>
-                        <input 
+                        <input
                             type="number"
                             min="1"
                             value={capacity}
