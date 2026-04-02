@@ -15,14 +15,13 @@ export default function TableUsageChartPage() {
 
     const fetchData = async () => {
         try {
-            // ดึงข้อมูลจากประวัติการใช้งาน (Order History)
             const response = await fetch('http://127.0.0.1:8080/api/bookings/all_details');
             const resData = await response.json();
 
             if (!resData.isError) {
                 // ประมวลผลข้อมูล: นับจำนวนครั้งที่แต่ละโต๊ะถูกใช้
                 const counts = resData.data.reduce((acc, curr) => {
-                    const tableKey = curr.table_number || curr.table_name || 'ทั่วไป';
+                    const tableKey = curr.table_number || curr.table_name || '';
                     acc[tableKey] = (acc[tableKey] || 0) + 1;
                     return acc;
                 }, {});
@@ -32,7 +31,7 @@ export default function TableUsageChartPage() {
                     name: key.toString().startsWith('โต๊ะ') ? key : `โต๊ะ ${key}`,
                     value: counts[key]
                 })).sort((a, b) => {
-                    // เรียงตามเลขโต๊ะ (ถ้าเป็นตัวเลข)
+                    // เรียงตามเลขโต๊ะ 
                     const numA = parseInt(a.name.replace(/\D/g, ''));
                     const numB = parseInt(b.name.replace(/\D/g, ''));
                     return (numA || 0) - (numB || 0);

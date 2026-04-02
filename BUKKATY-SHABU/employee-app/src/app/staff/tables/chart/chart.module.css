@@ -33,7 +33,7 @@
     margin-top: 1rem;
     width: 100%;
     max-width: 900px;
-    /* Glassmorphism: พื้นหลังโปร่งแสงและเบลอภาพข้างหลัง */
+    /*พื้นหลังโปร่งแสงและเบลอภาพข้างหลัง */
     background: rgba(255, 255, 255, 0.07);
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
@@ -44,7 +44,7 @@
 }
 
 .chartTitle {
-    color: #ffd700; /* สีทองธีมร้าน */
+    color: #ffd700; 
     font-size: 1.4rem;
     margin-bottom: 2rem;
     font-weight: 700;

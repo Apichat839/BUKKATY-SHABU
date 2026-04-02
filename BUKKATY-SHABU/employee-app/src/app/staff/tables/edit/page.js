@@ -110,9 +110,9 @@ export default function EditTablePage() {
                                     onChange={(e) => setStatus(e.target.value)}
                                     className={styles.select}
                                 >
-                                    <option value="" disabled>-- กรุณาเลือกสถานะ --</option>
-                                    <option value="available">โต๊ะว่าง</option>
-                                    <option value="occupied">โต๊ะไม่ว่าง</option>
+                                    <option value=" disabled">-- กรุณาเลือกสถานะ --</option>
+                                    <option value="available">โต๊ะไม่ว่าง</option>
+                                    <option value="occupied">โต๊ะว่าง</option>
                                 </select>
                             </div>
                             <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
@@ -149,7 +149,7 @@ export default function EditTablePage() {
                                         <td className={styles.td}>{t.seating_capacity} ที่นั่ง</td>
                                         <td className={styles.td}>
                                             <span className={`${styles.badge} ${isAvailable ? styles.available : styles.occupied}`}>
-                                                {isAvailable ? 'โต๊ะไม่ว่าง' : 'โต๊ะว่าง'}
+                                                {isAvailable ? 'โต๊ะว่าง' : 'โต๊ะไม่ว่าง'}
                                             </span>
                                         </td>
                                         <td className={`${styles.td} text-center`}>
